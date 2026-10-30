@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 import { TripCard } from "@/components/trip-card";
 import { ButtonLink, EmptyState, PageHeader, SectionTitle } from "@/components/ui";
+import { deleteEntity } from "@/lib/api";
 import { useAllBundles } from "@/lib/hooks";
 import { DataError, LoadingSkeleton } from "./status";
 import { todayISO, tripPhase } from "@/lib/domain/dates";
@@ -42,7 +43,7 @@ export default function TripsPage() {
                 <SectionTitle title={g.title} />
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {ordered.map((b) => (
-                    <TripCard key={b.trip.id} bundle={b} today={today} />
+                    <TripCard key={b.trip.id} bundle={b} today={today} onDelete={() => deleteEntity("trip", b.trip.id, b.trip.id, null)} />
                   ))}
                 </div>
               </section>

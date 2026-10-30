@@ -5,6 +5,7 @@ import { formatMoney } from "@/lib/domain/money";
 import type { TripBundle } from "@/lib/domain/types";
 import { TRIP_PHASE } from "@/lib/labels";
 import { tripCities, tripCountries } from "@/lib/trip-helpers";
+import { DeleteButton } from "./delete-button";
 import { Badge, Card, type Tone } from "./ui";
 
 const PHASE_TONE: Record<string, Tone> = { futuro: "accent", en_curso: "success", finalizado: "neutral", cancelado: "danger" };
@@ -30,46 +31,58 @@ export function TripCover({ name, image, className }: { name: string; image: str
   );
 }
 
-export function TripCard({ bundle, today }: { bundle: TripBundle; today: string }) {
+/** `onDelete`: muestra un botón de eliminar sobre la portada (con confirmación). */
+export function TripCard({ bundle, today, onDelete }: { bundle: TripBundle; today: string; onDelete?: () => Promise<void> }) {
   const { trip } = bundle;
   const phase = tripPhase(trip, today);
   const cities = tripCities(bundle);
   const countries = tripCountries(bundle);
   return (
-    <Link to={`/trips/${trip.id}`} className="group block">
-      <Card className="overflow-hidden transition group-hover:shadow-md group-hover:border-accent/40">
-        <TripCover name={trip.name} image={trip.coverImage} className="h-28 w-full" />
-        <div className="space-y-2 p-4">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold leading-tight">{trip.name}</h3>
-            <Badge tone={PHASE_TONE[phase]}>{TRIP_PHASE[phase]}</Badge>
-          </div>
-          {(cities.length > 0 || countries.length > 0) && (
-            <p className="flex items-center gap-1.5 truncate text-sm text-muted">
-              <MapPin size={14} className="shrink-0" />
-              {cities.length ? cities.join(" · ") : countries.join(" · ")}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
-            <span className="flex items-center gap-1">
-              <CalendarDays size={13} />
-              {formatDate(trip.startDate, "d MMM")} – {formatDate(trip.endDate)} · {tripDays(trip.startDate, trip.endDate)} días
-            </span>
-            {bundle.travelers.length > 0 && (
-              <span className="flex items-center gap-1">
-                <Users size={13} />
-                {bundle.travelers.length}
-              </span>
+    <div className="relative">
+      <Link to={`/trips/${trip.id}`} className="group block">
+        <Card className="overflow-hidden transition group-hover:shadow-md group-hover:border-accent/40">
+          <TripCover name={trip.name} image={trip.coverImage} className="h-28 w-full" />
+          <div className="space-y-2 p-4">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="font-semibold leading-tight">{trip.name}</h3>
+              <Badge tone={PHASE_TONE[phase]}>{TRIP_PHASE[phase]}</Badge>
+            </div>
+            {(cities.length > 0 || countries.length > 0) && (
+              <p className="flex items-center gap-1.5 truncate text-sm text-muted">
+                <MapPin size={14} className="shrink-0" />
+                {cities.length ? cities.join(" · ") : countries.join(" · ")}
+              </p>
             )}
-            {trip.budgetMinor !== null && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
               <span className="flex items-center gap-1">
-                <Wallet size={13} />
-                {formatMoney(trip.budgetMinor, trip.baseCurrency)}
+                <CalendarDays size={13} />
+                {formatDate(trip.startDate, "d MMM")} – {formatDate(trip.endDate)} · {tripDays(trip.startDate, trip.endDate)} días
               </span>
-            )}
+              {bundle.travelers.length > 0 && (
+                <span className="flex items-center gap-1">
+                  <Users size={13} />
+                  {bundle.travelers.length}
+                </span>
+              )}
+              {trip.budgetMinor !== null && (
+                <span className="flex items-center gap-1">
+                  <Wallet size={13} />
+                  {formatMoney(trip.budgetMinor, trip.baseCurrency)}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      </Card>
-    </Link>
+        </Card>
+      </Link>
+      {onDelete && (
+        // Fuera del enlace: así el diálogo de confirmación no abre el viaje al pulsarlo.
+        <DeleteButton
+          itemName={`el viaje «${trip.name}»`}
+          warning="Se borrarán todas sus reservas, gastos y documentos."
+          action={onDelete}
+          className="absolute right-2 top-2 bg-surface/90 text-ink shadow-sm backdrop-blur hover:bg-surface"
+        />
+      )}
+    </div>
   );
 }

@@ -2,7 +2,7 @@
 import { Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { Modal } from "./modal";
-import { buttonStyles } from "./ui";
+import { buttonStyles, cx } from "./ui";
 
 /** Botón de eliminar con confirmación obligatoria. */
 export function DeleteButton({
@@ -10,11 +10,14 @@ export function DeleteButton({
   itemName,
   warning,
   label,
+  className,
 }: {
   action: () => Promise<void>;
   itemName: string;
   warning?: string;
   label?: string;
+  /** Clases extra para el botón (p. ej. para colocarlo sobre una imagen). */
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -25,7 +28,7 @@ export function DeleteButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={label ? buttonStyles.secondary : buttonStyles.icon}
+        className={cx(label ? buttonStyles.secondary : buttonStyles.icon, className)}
         aria-label={`Eliminar ${itemName}`}
         title="Eliminar"
       >
