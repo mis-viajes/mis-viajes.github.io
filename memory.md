@@ -15,7 +15,7 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 - **Publicada:** https://diego94diaz-oss.github.io/Travel-manager/ (repo `diego94diaz-oss/Travel-manager`, con T mayúscula). Cada push a `main` la compila y la copia a la rama `gh-pages` (workflow verificado: éxito).
 - Comprobado en producción: la página carga sin errores de JavaScript y muestra el inicio de sesión de Supabase.
-- El usuario ya ejecutó el esquema inicial y tiene su viaje cargado en la app (dicho por el usuario). Los cambios de esquema los ejecuta el usuario.
+- El usuario ya ejecutó el esquema inicial y tiene su viaje cargado en la app (dicho por el usuario). Los cambios de esquema se ejecutan en el SQL Editor con la sesión del usuario en Chrome (el sistema de permisos bloquea leer el token de `Inversiones/data/`). Supabase avisa de operación destructiva si el SQL contiene `drop`.
 - **Verificado en local:** lint, typecheck, 23 tests unitarios, build; esquema SQL idempotente y RLS probados en PostgreSQL 16; E2E 34/34 contra ese PostgreSQL vía `tests/e2e/fake-supabase.mjs`; carga desde subcarpeta `/Travel-manager/`.
 - **Sin verificar aún con datos reales:** login real, Supabase Storage real, llamada real a Claude (simulada en la E2E).
 - GitHub Pages se activó con la rama `gh-pages` porque el entorno de Claude no puede cambiar los ajustes de Pages por API.
@@ -30,7 +30,7 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 ## Próximos pasos
 
-1. **Que el usuario ejecute de nuevo `supabase/schema.sql`** en Supabase (crea `tm_checklist_items` y `tm_activities.position`; es idempotente). Hasta entonces Checklist muestra cómo activarla y el resto funciona.
+1. Hecho (2026-10-30): `tm_checklist_items` y `tm_activities.position` creadas en Supabase desde el SQL Editor; RLS activo y conteos de datos sin cambios.
 2. Probar en el dispositivo real: instalar en PC y Pixel, y abrir sin internet con la cuenta real.
 3. Comprobar con datos reales lo que solo se probó en local: Supabase Storage y la llamada a Claude (requiere clave de Anthropic).
 4. Valorar mover la llamada a Claude a una Supabase Edge Function.
