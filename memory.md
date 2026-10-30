@@ -18,6 +18,8 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 - **Sin verificar aún con datos reales:** login real, Supabase Storage real, llamada real a Claude (simulada en la E2E).
 - GitHub Pages se activó con la rama `gh-pages` porque el entorno de Claude no puede cambiar los ajustes de Pages por API.
 
+- **Importar viajes desde JSON** (Ajustes) añadido y probado en local: el viaje «Europa 2026» preparado a partir de 4 PDFs del usuario se importa con 7 vuelos, 3 gastos y 4 documentos sin errores. El archivo se entregó al usuario (no está en el repo: contiene datos personales).
+
 ## Próximos pasos
 
 1. Que el usuario ejecute `supabase/schema.sql`; después, probar con la cuenta real (crear viaje, subir documento, importar).

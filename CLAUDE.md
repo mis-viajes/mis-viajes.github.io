@@ -175,7 +175,7 @@ Futuras: Google Calendar, vuelos (Google Flights **no** tiene API pública), tre
 | 2 | Vuelos (zonas horarias, conexiones), equipaje por vuelo + resumen, alojamientos, transporte | ✅ — falta checklist de maleta |
 | 3 | Actividades, restaurantes, resumen día a día | ✅ parcial — faltan calendario mensual/semanal y arrastrar para reordenar |
 | 4 | Finanzas: pagado/pendiente/previsto, reparto, saldos, multimoneda, CSV | ✅ |
-| 5 | Mapa ✅ · Importación ✅ · Documentos ✅ · Alertas ✅ · Exportar JSON ✅ · Pendiente: checklist/tareas, PDF del itinerario, búsqueda global, acceso desde Mi Día | 🟡 |
+| 5 | Mapa ✅ · Importación ✅ · Documentos ✅ · Alertas ✅ · Exportar/importar JSON ✅ · Pendiente: checklist/tareas, PDF del itinerario, búsqueda global, acceso desde Mi Día | 🟡 |
 
 ### Al terminar cada fase (Definition of Done)
 
@@ -191,7 +191,7 @@ Futuras: Google Calendar, vuelos (Google Flights **no** tiene API pública), tre
 - **Precisión monetaria** y monedas sin decimales (CLP) → enteros en unidad mínima.
 - **Tipos de cambio:** sin proveedor externo al inicio; entrada manual con historial.
 - **Adjuntos:** cuota de Supabase Storage (plan gratuito) → límite de 20 MB por archivo y tipos MIME permitidos.
-- **Pérdida de datos:** exportación JSON desde Ajustes + copias de Supabase; confirmación antes de eliminar. Falta importar desde JSON.
+- **Pérdida de datos:** exportar/importar JSON desde Ajustes (`src/lib/import-json.ts`; los documentos se importan si traen `fileBase64`) + copias de Supabase; confirmación antes de eliminar.
 - **Proyecto Supabase compartido:** un error de esquema podría afectar a otras apps → prefijo `tm_`, SQL idempotente y probado en local antes de pedir que se ejecute.
 - **APIs de terceros:** muchas no son públicas o tienen costo → núcleo 100 % funcional sin ellas.
 

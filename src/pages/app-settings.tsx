@@ -1,9 +1,10 @@
-import { Download, KeyRound, LogOut } from "lucide-react";
+import { Download, KeyRound, LogOut, Upload } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/auth";
 import { buttonStyles, Card, PageHeader, SectionTitle } from "@/components/ui";
 import { fetchAllBundles, fetchExchangeRates } from "@/lib/data";
 import { getApiKey, setApiKey } from "@/lib/import/api-key";
+import { importBackup } from "@/lib/import-json";
 
 export default function AppSettings() {
   const { email, signOut } = useAuth();
@@ -11,6 +12,27 @@ export default function AppSettings() {
   const [saved, setSaved] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const hasKey = Boolean(getApiKey());
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<{ tone: "ok" | "error" | "info"; text: string } | null>(null);
+
+  const importFile = async (file: File | undefined) => {
+    if (!file) return;
+    setImporting(true);
+    setImportMsg({ tone: "info", text: "Leyendo archivo…" });
+    try {
+      const s = await importBackup(await file.text(), (text) => setImportMsg({ tone: "info", text }));
+      setImportMsg({
+        tone: "ok",
+        text:
+          `Importado: ${s.trips} ${s.trips === 1 ? "viaje" : "viajes"}, ${s.flights} vuelos, ${s.expenses} gastos y ${s.documents} documentos.` +
+          (s.skippedDocuments ? ` ${s.skippedDocuments} documentos sin archivo adjunto no se importaron.` : ""),
+      });
+    } catch (e) {
+      setImportMsg({ tone: "error", text: e instanceof Error ? e.message : "No se pudo importar el archivo." });
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const exportAll = async () => {
     setExporting(true);
@@ -106,6 +128,31 @@ export default function AppSettings() {
           <Download size={16} /> {exporting ? "Preparando…" : "Exportar mis datos"}
         </button>
         <p className="mt-2 text-xs text-muted">Los archivos adjuntos (PDFs, imágenes) quedan en Supabase Storage y no se incluyen.</p>
+      </section>
+
+      <section>
+        <SectionTitle
+          title="Importar viajes desde archivo"
+          subtitle="Carga un archivo JSON de Travel Manager (una copia exportada o un viaje preparado). Se crean viajes nuevos; no se modifica ni borra nada existente."
+        />
+        <label className={`${buttonStyles.secondary} cursor-pointer ${importing ? "pointer-events-none opacity-50" : ""}`}>
+          <Upload size={16} /> {importing ? "Importando…" : "Elegir archivo JSON"}
+          <input
+            type="file"
+            accept="application/json,.json"
+            className="sr-only"
+            disabled={importing}
+            onChange={(e) => {
+              importFile(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
+        </label>
+        {importMsg && (
+          <p className={`mt-2 text-sm ${importMsg.tone === "ok" ? "text-success" : importMsg.tone === "error" ? "text-danger" : "text-muted"}`}>
+            {importMsg.text}
+          </p>
+        )}
       </section>
     </div>
   );
