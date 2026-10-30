@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Expense, Traveler } from "../../types";
+import type { Expense, Repayment, Traveler } from "../../types";
 import { settle, summarizeFinances, type ExpenseWithShares } from "../finance";
 
 const t = (id: string): Traveler => ({ id, tripId: "t", name: id.toUpperCase(), color: null, createdAt: "", updatedAt: "" });
@@ -96,5 +96,26 @@ describe("settle", () => {
       { from: B, to: A, amount: 50 },
       { from: C, to: A, amount: 20 },
     ]);
+  });
+});
+
+describe("pagos entre viajeros", () => {
+  const a = { id: "a", name: "A" } as Traveler;
+  const c = { id: "c", name: "C" } as Traveler;
+  const gasto = {
+    id: "e", status: "pagado", category: "otros", currency: "CLP", exchangeRate: 1, amountMinor: 1000, amountBaseMinor: 1000, paidMinor: null, destinationId: null,
+    paidByTravelerId: "a", shares: [{ travelerId: "a", shareBaseMinor: 500 }, { travelerId: "c", shareBaseMinor: 500 }],
+  } as ExpenseWithShares;
+  const pago = (amountBaseMinor: number) => ({ id: "r", fromTravelerId: "c", toTravelerId: "a", amountBaseMinor }) as Repayment;
+
+  it("un pago completo deja las cuentas en cero sin cambiar el total", () => {
+    const f = summarizeFinances([gasto], [a, c], "CLP", null, [pago(500)]);
+    expect(f.balances.map((b) => b.balance)).toEqual([0, 0]);
+    expect(f.settlements).toHaveLength(0);
+    expect(f.totals.paid).toBe(1000);
+  });
+
+  it("un pago parcial deja el resto por saldar", () => {
+    expect(summarizeFinances([gasto], [a, c], "CLP", null, [pago(200)]).settlements[0].amount).toBe(300);
   });
 });

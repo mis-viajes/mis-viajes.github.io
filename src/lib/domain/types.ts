@@ -6,6 +6,7 @@ import type {
   DocumentRow,
   Flight,
   Lodging,
+  Repayment,
   Restaurant,
   Transport,
   Traveler,
@@ -30,4 +31,7 @@ export type TripBundle = {
   checklist: ChecklistItem[];
   /** false si aún no se ejecutó en Supabase la parte del esquema que crea la checklist. */
   checklistAvailable: boolean;
+  repayments: Repayment[];
+  /** false si aún no se ejecutó en Supabase la parte del esquema que crea los pagos entre viajeros. */
+  repaymentsAvailable: boolean;
 };

@@ -10,6 +10,7 @@ import type {
   Expense,
   Flight,
   Lodging,
+  Repayment,
   Restaurant,
   Transport,
   Traveler,
@@ -31,10 +32,18 @@ type Rows = {
   documents: DocumentRow[];
   /** null: la tabla aún no existe en Supabase. */
   checklist: ChecklistItem[] | null;
+  repayments: Repayment[] | null;
 };
 
+/** Tablas añadidas después de la primera versión: si aún no existen, devuelve null. */
+const optional = <T>(query: Promise<T[]>) =>
+  query.catch((e) => {
+    if (isMissingSchema(e)) return null;
+    throw e;
+  });
+
 async function loadRows(filter: Record<string, string>): Promise<Rows> {
-  const [travelers, destinations, flights, baggage, lodgings, transports, activities, restaurants, expenses, documents, checklist] = await Promise.all([
+  const [travelers, destinations, flights, baggage, lodgings, transports, activities, restaurants, expenses, documents, checklist, repayments] = await Promise.all([
     selectAll<Traveler>("traveler", filter, [["createdAt", true]]),
     selectAll<Destination>("destination", filter, [["position", true], ["arrivalDate", true]]),
     selectAll<Flight>("flight", filter, [["departureLocal", true]]),
@@ -45,12 +54,10 @@ async function loadRows(filter: Record<string, string>): Promise<Rows> {
     selectAll<Restaurant>("restaurant", filter, [["name", true]]),
     selectAll<Expense>("expense", filter, [["date", false], ["createdAt", false]]),
     selectAll<DocumentRow>("document", filter, [["createdAt", false]]),
-    selectAll<ChecklistItem>("checklist", filter, [["createdAt", true]]).catch((e) => {
-      if (isMissingSchema(e)) return null;
-      throw e;
-    }),
+    optional(selectAll<ChecklistItem>("checklist", filter, [["createdAt", true]])),
+    optional(selectAll<Repayment>("repayment", filter, [["date", true]])),
   ]);
-  return { travelers, destinations, flights, baggage, lodgings, transports, activities, restaurants, expenses, documents, checklist };
+  return { travelers, destinations, flights, baggage, lodgings, transports, activities, restaurants, expenses, documents, checklist, repayments };
 }
 
 function assemble(trip: Trip, r: Rows): TripBundle {
@@ -71,6 +78,8 @@ function assemble(trip: Trip, r: Rows): TripBundle {
     documents: mine(r.documents),
     checklist: mine(r.checklist ?? []),
     checklistAvailable: r.checklist !== null,
+    repayments: mine(r.repayments ?? []),
+    repaymentsAvailable: r.repayments !== null,
   };
 }
 

@@ -174,6 +174,19 @@ async function seed() {
       await page.emulateMedia({ media: "screen" });
       check("se genera el PDF", fs.statSync(`${SHOTS}/itinerario.pdf`).size > 5000);
 
+      // Pagos entre viajeros
+      const [v1, v2] = await rest("tm_travelers", "POST", [{ trip_id: tripId, name: "Viajero Uno" }, { trip_id: tripId, name: "Viajero Dos" }]);
+      await rest("tm_expenses", "POST", {
+        trip_id: tripId, description: "Cena de prueba", category: "otros", amount_minor: 1000, currency: "CLP", exchange_rate: 1, amount_base_minor: 1000,
+        status: "pagado", paid_by_traveler_id: v1.id, shares: [{ travelerId: v1.id, shareBaseMinor: 500 }, { travelerId: v2.id, shareBaseMinor: 500 }],
+      });
+      await page.goto(`${trip}/finance`);
+      await page.reload();
+      await page.click("button:has-text('Registrar pago')");
+      await page.waitForSelector("text=Las cuentas están equilibradas");
+      check("registrar un pago salda las cuentas", (await page.innerText("main")).includes("Pagos entre viajeros"));
+      check("el pago no cambia el total del viaje", (await page.innerText("main")).includes("$1.000"));
+
       // Documentos: el bug de «Abrir» y copia sin conexión
       await page.goto(`${trip}/documents`);
       await page.click("button:has-text('Subir'), button:has-text('Agregar')");

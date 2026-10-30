@@ -13,7 +13,7 @@ const trip: Trip = {
 };
 
 const bundle = (over: Partial<TripBundle>): TripBundle => ({
-  trip, travelers: [], destinations: [], flights: [], lodgings: [], transports: [], activities: [], restaurants: [], expenses: [], documents: [], checklist: [], checklistAvailable: true, ...over,
+  trip, travelers: [], destinations: [], flights: [], lodgings: [], transports: [], activities: [], restaurants: [], expenses: [], documents: [], checklist: [], checklistAvailable: true, repayments: [], repaymentsAvailable: true, ...over,
 });
 
 const item = (over: Partial<ChecklistItem>): ChecklistItem => ({

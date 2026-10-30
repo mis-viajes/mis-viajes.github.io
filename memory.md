@@ -75,6 +75,9 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 ## Bitácora de sesiones
 
+### 2026-10-30 (6) — Pagos entre viajeros
+- Nueva tabla `tm_repayments`: lo que un viajero le devuelve a otro ajusta el saldo sin cambiar el total. Catalina pagó $803.803 a Diego el 2026-10-30.
+
 ### 2026-10-30 (5) — Nueva dirección
 - Mudada a https://mis-viajes.github.io/ (organización `mis-viajes`, remoto `origin`). El repo anterior queda como remoto `antiguo`: su `gh-pages` redirige y su service worker se elimina solo; no publicar más allí.
 - Decidido por el usuario: Disneyland queda en $238.673 y la dirección del Hotel Alcyone es Calle dei Fabbri 471 (el punto del mapa usa la ubicación del hotel en OpenStreetMap, que lo registra como 4712).

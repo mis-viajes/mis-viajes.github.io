@@ -352,6 +352,17 @@ export async function deleteExpense(tripId: string, id: string) {
   notifyDataChanged();
 }
 
+/** Registra que un viajero le devolvió dinero a otro. */
+export async function addRepayment(tripId: string, fromTravelerId: string, toTravelerId: string, amountBaseMinor: number, date: string) {
+  await insertRow("repayment", { tripId, fromTravelerId, toTravelerId, amountBaseMinor, date });
+  notifyDataChanged();
+}
+
+export async function deleteRepayment(tripId: string, id: string) {
+  await deleteRows("repayment", { id, tripId });
+  notifyDataChanged();
+}
+
 /** Marca un gasto como pagado. No altera el tipo de cambio congelado. */
 export async function setExpenseStatus(tripId: string, id: string, status: "pagado" | "pendiente", paidBy: string | null) {
   await updateRows("expense", { id, tripId }, { status, paidMinor: null, ...(paidBy ? { paidByTravelerId: paidBy } : {}) });

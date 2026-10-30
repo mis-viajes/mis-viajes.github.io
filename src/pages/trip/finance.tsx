@@ -2,8 +2,9 @@ import { useExchangeRates } from "@/lib/hooks";
 import { useSearchParams } from "react-router";
 import { useTrip } from "@/pages/trip/context";
 import { ArrowRight, Download, Wallet } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router";
-import { deleteEntity, deleteExpense, saveEntity, saveExpense, setExpenseStatus } from "@/lib/api";
+import { addRepayment, deleteEntity, deleteExpense, deleteRepayment, saveEntity, saveExpense, setExpenseStatus } from "@/lib/api";
 import { DeleteButton } from "@/components/delete-button";
 import { ExpenseDialog } from "@/components/expense-form";
 import { CategoryBar, PersonBars } from "@/components/finance-charts";
@@ -30,7 +31,16 @@ export default function FinancePage() {
   const estado = searchParams.get("estado") ?? undefined;
   const rateHistory = useExchangeRates().data ?? [];
   const base = b.trip.baseCurrency;
-  const f = summarizeFinances(b.expenses, b.travelers, base, b.trip.budgetMinor);
+  const f = summarizeFinances(b.expenses, b.travelers, base, b.trip.budgetMinor, b.repayments);
+  const [repayError, setRepayError] = useState<string | null>(null);
+  const registerRepayment = async (from: string, to: string, amount: number) => {
+    setRepayError(null);
+    try {
+      await addRepayment(tripId, from, to, amount, todayISO());
+    } catch {
+      setRepayError("No se pudo registrar el pago. Revisa tu conexión.");
+    }
+  };
   const money = (v: number | null) => formatMoney(v, base);
   const formBase = expenseFormBase(b, rates);
   const travelers = b.travelers.map((t) => ({ id: t.id, name: t.name }));
@@ -127,6 +137,7 @@ export default function FinancePage() {
               </table>
               <p className="px-4 pb-3 text-xs text-muted">
                 Saldo positivo: le deben dinero. Negativo: debe dinero. «Su parte del total» incluye pendientes y previstos.
+                {b.repayments.length > 0 && " El saldo ya descuenta los pagos entre viajeros."}
                 {f.paidWithoutPayer > 0 && ` Hay ${money(f.paidWithoutPayer)} pagados sin indicar quién pagó.`}
               </p>
             </Card>
@@ -140,9 +151,32 @@ export default function FinancePage() {
                     <li key={i} className="flex flex-wrap items-center gap-1.5">
                       <strong>{s.from.name}</strong> <ArrowRight size={14} className="text-muted" /> <strong>{s.to.name}</strong>
                       <span className="ml-auto tabular-nums">{money(s.amount)}</span>
+                      {b.repaymentsAvailable && (
+                        <button type="button" className={`${buttonStyles.secondary} w-full`} onClick={() => registerRepayment(s.from.id, s.to.id, s.amount)}>
+                          Registrar pago
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>
+              )}
+              {repayError && <p className="mt-2 text-sm text-danger">{repayError}</p>}
+              {b.repayments.length > 0 && (
+                <div className="mt-4 border-t border-line pt-3">
+                  <p className="mb-1 text-xs font-medium text-muted">Pagos entre viajeros</p>
+                  <ul className="space-y-1 text-sm">
+                    {b.repayments.map((r) => (
+                      <li key={r.id} className="flex items-center gap-2">
+                        <span className="min-w-0 flex-1">
+                          {travelerName(b, r.fromTravelerId)} → {travelerName(b, r.toTravelerId)}
+                          <span className="block text-xs text-muted">{formatDate(r.date)}</span>
+                        </span>
+                        <span className="tabular-nums">{money(r.amountBaseMinor)}</span>
+                        <DeleteButton itemName="este pago entre viajeros" warning="Los gastos no cambian; el saldo volverá a mostrar esa deuda." action={deleteRepayment.bind(null, tripId, r.id)} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </Card>
           </div>

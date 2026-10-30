@@ -122,7 +122,7 @@ Lógica pura y testeada: src/lib/domain/*  (dinero, fechas, finanzas, alertas, i
 
 **Fuente de verdad: `supabase/schema.sql`** (columnas snake_case) y `src/lib/types.ts` (camelCase). Todas las tablas llevan `user_id` (por defecto `auth.uid()`), y salvo `tm_trips` y `tm_exchange_rates`, también `trip_id` con borrado en cascada. Las políticas exigen además que la fila cuelgue de un viaje del propio usuario.
 
-Tablas: `tm_trips`, `tm_travelers`, `tm_destinations`, `tm_flights`, `tm_baggage_allowances` (por vuelo), `tm_lodgings`, `tm_transports`, `tm_activities`, `tm_restaurants`, `tm_documents`, `tm_expenses` (con el reparto en la columna jsonb `shares`: `[{travelerId, shareBaseMinor}]`), `tm_exchange_rates` (por usuario), `tm_checklist_items` (tareas y maleta, según la columna `list`).
+Tablas: `tm_trips`, `tm_travelers`, `tm_destinations`, `tm_flights`, `tm_baggage_allowances` (por vuelo), `tm_lodgings`, `tm_transports`, `tm_activities`, `tm_restaurants`, `tm_documents`, `tm_expenses` (con el reparto en la columna jsonb `shares`: `[{travelerId, shareBaseMinor}]`), `tm_exchange_rates` (por usuario), `tm_checklist_items` (tareas y maleta, según la columna `list`), `tm_repayments` (pagos entre viajeros).
 
 Cambios de esquema: añadir SQL idempotente al final de `supabase/schema.sql` (`alter table … add column if not exists …`), actualizar `types.ts`, y pedir al usuario que lo ejecute en Supabase. Probarlo antes en el PostgreSQL local (`tests/db`).
 
@@ -134,6 +134,7 @@ Cambios de esquema: añadir SQL idempotente al final de `supabase/schema.sql` (`
 - **Estados explícitos:** `bookingStatus` ∈ {idea, estimado, reservado, confirmado, cancelado}; estado del gasto ∈ {pagado, parcial, pendiente, previsto}. Valor por defecto: el **menos comprometido** (idea / previsto).
   - *pendiente* = comprometido (reservado) pero sin pagar · *previsto* = gasto futuro estimado, aún no comprometido.
   - Los saldos entre viajeros solo cuentan lo **ya pagado**; «su parte del total» incluye pendientes y previstos.
+  - Lo que un viajero le devuelve a otro es un **pago entre viajeros** (`tm_repayments`), no un gasto: ajusta el saldo y no cambia el total del viaje.
 - **Datos sensibles:** PNR, códigos de reserva, info de acceso y documentos se muestran enmascarados por defecto con opción de revelar. No se exponen en URLs ni en logs. **Nunca** almacenar contraseñas ni datos de tarjetas (solo "método de pago" descriptivo, p. ej. "Visa terminada en 1234" si el usuario lo escribe).
 
 ---
@@ -254,3 +255,4 @@ npm run test:e2e       # smoke.mjs + features.mjs (ESQUEMA_ANTIGUO=1: prueba la 
 | 2026-10-30 | PDF con el diálogo de impresión, sin librería | Sin dependencias ni peso extra; el resultado es texto seleccionable. |
 | 2026-10-30 | Mapa sin teselas offline | Las teselas de OSM son respuestas opacas que consumen mucha cuota, y OSM no permite descargas masivas. |
 | 2026-10-30 | **Dirección propia `mis-viajes.github.io`** (organización `mis-viajes`, como `mis-inversiones`) | El usuario no quería su nombre de cuenta en el enlace. La app deja de compartir origen con las otras: login propio una vez. La dirección antigua redirige. |
+| 2026-10-30 | Pagos entre viajeros en tabla propia, no como gasto | Un gasto inflaría el total y el presupuesto. Se registra desde «Para quedar a mano». |

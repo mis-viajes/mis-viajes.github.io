@@ -264,6 +264,16 @@ export type Expense = Row & {
   notes: string | null;
 };
 
+/** Dinero que un viajero le devuelve a otro. No es un gasto: mueve el saldo, no el total del viaje. */
+export type Repayment = Row & {
+  tripId: string;
+  fromTravelerId: string;
+  toTravelerId: string;
+  amountBaseMinor: number;
+  date: string;
+  notes: string | null;
+};
+
 export type ExchangeRate = Row & {
   fromCurrency: string;
   toCurrency: string;

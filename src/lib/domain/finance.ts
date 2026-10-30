@@ -1,4 +1,4 @@
-import type { Expense, Traveler } from "../types";
+import type { Expense, Repayment, Traveler } from "../types";
 import { convertMinor } from "./money";
 
 /** Los gastos guardan sus partes en la propia fila (columna jsonb `shares`). */
@@ -35,7 +35,9 @@ export type TravelerBalance = {
   paid: number;
   /** Lo que le corresponde de lo ya pagado. */
   shareOfPaid: number;
-  /** paid - shareOfPaid: positivo = le deben, negativo = debe. */
+  /** Devuelto a otros viajeros menos lo recibido de ellos. */
+  repaid: number;
+  /** paid - shareOfPaid + repaid: positivo = le deben, negativo = debe. */
   balance: number;
   /** Lo que le corresponde del total previsto del viaje (pagado + pendiente + previsto). */
   shareTotal: number;
@@ -59,6 +61,7 @@ export function summarizeFinances(
   travelers: Traveler[],
   base: string,
   budget: number | null,
+  repayments: Repayment[] = [],
 ): FinanceSummary {
   const totals = emptyBucket();
   const byCategory: Record<string, Bucket> = {};
@@ -90,7 +93,8 @@ export function summarizeFinances(
   const balances = travelers.map((t) => {
     const paid = paidBy.get(t.id) ?? 0;
     const share = shareOfPaid.get(t.id) ?? 0;
-    return { traveler: t, paid, shareOfPaid: share, balance: paid - share, shareTotal: shareTotal.get(t.id) ?? 0 };
+    const repaid = repayments.reduce((sum, r) => sum + (r.fromTravelerId === t.id ? r.amountBaseMinor : 0) - (r.toTravelerId === t.id ? r.amountBaseMinor : 0), 0);
+    return { traveler: t, paid, shareOfPaid: share, repaid, balance: paid - share + repaid, shareTotal: shareTotal.get(t.id) ?? 0 };
   });
 
   const committed = totals.paid + totals.pending;

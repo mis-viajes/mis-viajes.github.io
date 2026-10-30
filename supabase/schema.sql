@@ -376,3 +376,34 @@ create policy "tm_own_rows" on public.tm_checklist_items for all to authenticate
 
 -- Para que la API vea los cambios sin esperar.
 notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------
+-- Añadido 2026-10-30: pagos entre viajeros. Ajustan los saldos, no el total del viaje.
+-- ---------------------------------------------------------------------
+create table if not exists public.tm_repayments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  trip_id uuid not null references public.tm_trips(id) on delete cascade,
+  from_traveler_id uuid not null references public.tm_travelers(id) on delete cascade,
+  to_traveler_id uuid not null references public.tm_travelers(id) on delete cascade,
+  amount_base_minor bigint not null check (amount_base_minor > 0),
+  date date not null,
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check (from_traveler_id <> to_traveler_id)
+);
+
+alter table public.tm_repayments enable row level security;
+drop trigger if exists tm_repayments_touch on public.tm_repayments;
+create trigger tm_repayments_touch before update on public.tm_repayments
+  for each row execute function public.tm_touch_updated_at();
+create index if not exists tm_repayments_user_idx on public.tm_repayments (user_id);
+create index if not exists tm_repayments_trip_idx on public.tm_repayments (trip_id);
+drop policy if exists "tm_own_rows" on public.tm_repayments;
+create policy "tm_own_rows" on public.tm_repayments for all to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid()
+              and exists (select 1 from public.tm_trips tr where tr.id = trip_id and tr.user_id = auth.uid()));
+
+notify pgrst, 'reload schema';

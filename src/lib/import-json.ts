@@ -144,6 +144,12 @@ export async function importBackup(text: string, onProgress?: (msg: string) => v
       remember("expense", e.id, created.id);
       summary.expenses++;
     }
+    await insertRows(
+      "repayment",
+      list(bundle.repayments)
+        .map((r) => ({ tripId, fromTravelerId: ref("traveler", r.fromTravelerId), toTravelerId: ref("traveler", r.toTravelerId), amountBaseMinor: r.amountBaseMinor, date: r.date, notes: r.notes ?? null }))
+        .filter((r) => r.fromTravelerId && r.toTravelerId),
+    );
     await insertRows("checklist", list(bundle.checklist).map((c) => ({ ...pick(c, COLUMNS.checklist), tripId })));
     for (const doc of list(bundle.documents)) {
       if (typeof doc.fileBase64 !== "string") {

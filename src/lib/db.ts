@@ -16,6 +16,7 @@ export const TABLE = {
   expense: "tm_expenses",
   exchangeRate: "tm_exchange_rates",
   checklist: "tm_checklist_items",
+  repayment: "tm_repayments",
 } as const;
 
 export type TableKey = keyof typeof TABLE;
