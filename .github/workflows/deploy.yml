@@ -1,5 +1,5 @@
 # Publica la app en GitHub Pages en cada push a main:
-# https://diego94diaz-oss.github.io/Travel-manager/
+# https://mis-viajes.github.io/
 # Compila y copia el resultado a la rama gh-pages, que GitHub Pages sirve directamente.
 name: Publicar en GitHub Pages
 

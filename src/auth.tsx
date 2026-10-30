@@ -11,7 +11,7 @@ export const useAuth = () => useContext(AuthContext);
 
 /**
  * Inicio de sesión con la misma cuenta de Supabase que Mi Día, Finanzas y Kratos.
- * Como todas viven en diego94diaz-oss.github.io, si ya hay sesión en otra app, se reutiliza.
+ * Esta app tiene origen propio (mis-viajes.github.io): la sesión se inicia aquí.
  */
 export function AuthGate({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(isTestMode ? null : undefined);

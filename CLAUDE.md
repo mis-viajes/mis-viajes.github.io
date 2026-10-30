@@ -66,7 +66,7 @@ Idioma de la interfaz: **español**. Monedas principales: **CLP, EUR, USD**.
 
 ## 4. Arquitectura y stack
 
-App **estática** publicada en GitHub Pages (`https://diego94diaz-oss.github.io/Travel-manager/`), con los datos en el **proyecto Supabase compartido** con Mi Día, Finanzas y Kratos. Mismo patrón que el resto del ecosistema del usuario: login con correo y contraseña de Supabase, Row Level Security `user_id = auth.uid()`, sin servidor propio.
+App **estática** publicada en GitHub Pages (`https://mis-viajes.github.io/`), con los datos en el **proyecto Supabase compartido** con Mi Día, Finanzas y Kratos. Mismo patrón que el resto del ecosistema del usuario: login con correo y contraseña de Supabase, Row Level Security `user_id = auth.uid()`, sin servidor propio.
 
 | Capa | Tecnología | Notas |
 |---|---|---|
@@ -74,7 +74,7 @@ App **estática** publicada en GitHub Pages (`https://diego94diaz-oss.github.io/
 | Rutas | react-router con **HashRouter** (`/#/trips/…`) | GitHub Pages no reescribe rutas: con hash, recargar cualquier página funciona. |
 | UI | **Tailwind CSS 4** + componentes propios (`src/components/ui.tsx`) | Tokens semánticos (`bg-surface`, `text-muted`, `text-accent`…) en `src/index.css`, con variante `.dark`. |
 | Datos | **supabase-js** contra tablas `tm_*` | `src/lib/db.ts` convierte camelCase ↔ snake_case. Lecturas en `src/lib/data.ts`; mutaciones en `src/lib/api.ts`. |
-| Sesión | Supabase Auth (correo + contraseña) | Todas las apps viven en `diego94diaz-oss.github.io`: comparten origen, así que la sesión de Mi Día sirve aquí. |
+| Sesión | Supabase Auth (correo + contraseña) | Misma cuenta que el resto de las apps, pero esta vive en su propio origen (`mis-viajes.github.io`): se inicia sesión una vez aquí. |
 | Archivos | Supabase Storage, bucket privado `tm-documentos` | Ruta `<user_id>/<trip_id>/<uuid>-<nombre>`; enlaces firmados de 10 min para abrirlos. |
 | Mapas | Leaflet + react-leaflet + teselas OSM | Geocodificación con Nominatim desde el navegador. |
 | Importación | **API de Claude** desde el navegador (`@anthropic-ai/sdk`, `dangerouslyAllowBrowser`) | Clave del usuario guardada solo en `localStorage` del dispositivo (ver §9 bis). El SDK se carga bajo demanda. |
@@ -225,7 +225,7 @@ npm run test:e2e       # smoke.mjs + features.mjs (ESQUEMA_ANTIGUO=1: prueba la 
 ## 9 bis. Seguridad
 
 - Datos protegidos por **RLS** en todas las tablas `tm_*` y por políticas de Storage por carpeta de usuario. Probado en `tests/db/rls-test.sql`.
-- La **clave de Anthropic** vive solo en `localStorage` del dispositivo del usuario. Como todas las apps comparten el origen `diego94diaz-oss.github.io`, cualquier app de ese origen podría leerla: aceptable porque son todas del usuario; si eso cambia, mover la llamada a una Edge Function.
+- La **clave de Anthropic** vive solo en `localStorage` del dispositivo del usuario. Esta app tiene origen propio (`mis-viajes.github.io`), así que las otras apps no pueden leerla.
 - Códigos de reserva e información de acceso se muestran enmascarados (`components/sensitive.tsx`). Nunca se guardan contraseñas ni números de tarjeta.
 - Archivos: tipos MIME permitidos, 20 MB máximo, bucket privado y enlaces firmados temporales.
 - Eliminar siempre pide confirmación (`components/delete-button.tsx`).
@@ -253,3 +253,4 @@ npm run test:e2e       # smoke.mjs + features.mjs (ESQUEMA_ANTIGUO=1: prueba la 
 | 2026-10-30 | Una sola tabla `tm_checklist_items` para tareas y maleta | Comparten casi todo (título, estado, grupo); la columna `list` las separa. |
 | 2026-10-30 | PDF con el diálogo de impresión, sin librería | Sin dependencias ni peso extra; el resultado es texto seleccionable. |
 | 2026-10-30 | Mapa sin teselas offline | Las teselas de OSM son respuestas opacas que consumen mucha cuota, y OSM no permite descargas masivas. |
+| 2026-10-30 | **Dirección propia `mis-viajes.github.io`** (organización `mis-viajes`, como `mis-inversiones`) | El usuario no quería su nombre de cuenta en el enlace. La app deja de compartir origen con las otras: login propio una vez. La dirección antigua redirige. |

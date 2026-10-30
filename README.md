@@ -2,7 +2,7 @@
 
 Aplicación personal para planificar y gestionar viajes: destinos, vuelos y equipaje, alojamientos, transporte, actividades, restaurantes, finanzas compartidas, documentos, mapa interactivo e importación inteligente de reservas.
 
-**App:** https://diego94diaz-oss.github.io/Travel-manager/
+**App:** https://mis-viajes.github.io/
 
 Forma parte del mismo ecosistema que Mi Día, Finanzas y Kratos: mismo proyecto Supabase, mismo inicio de sesión y publicación en GitHub Pages.
 
@@ -38,7 +38,7 @@ Más detalle técnico en [`CLAUDE.md`](CLAUDE.md).
 
 ## Instalar la app
 
-Abre https://diego94diaz-oss.github.io/Travel-manager/ e inicia sesión.
+Abre https://mis-viajes.github.io/ e inicia sesión.
 
 - **PC (Chrome o Edge):** icono de instalar en la barra de direcciones.
 - **Android (Chrome):** menú ⋮ → Instalar aplicación.

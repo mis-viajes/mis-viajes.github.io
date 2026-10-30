@@ -2,8 +2,7 @@
  * Copia local (IndexedDB) de lo último leído de Supabase, para consultar el viaje sin internet.
  * Contiene datos personales: se borra al cerrar sesión. Sin conexión la app es de solo lectura.
  *
- * Se usa IndexedDB y no localStorage porque el origen diego94diaz-oss.github.io lo comparten
- * todas las apps y localStorage tiene un cupo común de unos 5 MB.
+ * Se usa IndexedDB y no localStorage porque localStorage tiene un cupo de unos 5 MB.
  */
 
 const DB_NAME = "travel-manager";

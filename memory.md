@@ -13,7 +13,7 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 - **2026-10-30 (sesión 4):** completadas todas las funciones del plan e instalación como app. La carpeta local ya es el repositorio git (`origin` = `Travel-manager`, rama `main`; en sesiones anteriores no lo era). Verificado: 40 tests unitarios, E2E 34/34 + 29/29 contra PostgreSQL real, migración desde el esquema antiguo conservando datos, RLS de la tabla nueva.
 
-- **Publicada:** https://diego94diaz-oss.github.io/Travel-manager/ (repo `diego94diaz-oss/Travel-manager`, con T mayúscula). Cada push a `main` la compila y la copia a la rama `gh-pages` (workflow verificado: éxito).
+- **Publicada:** https://mis-viajes.github.io/ (repo `mis-viajes/mis-viajes.github.io`, con T mayúscula). Cada push a `main` la compila y la copia a la rama `gh-pages` (workflow verificado: éxito).
 - Comprobado en producción: la página carga sin errores de JavaScript y muestra el inicio de sesión de Supabase.
 - El usuario ya ejecutó el esquema inicial y tiene su viaje cargado en la app (dicho por el usuario). Los cambios de esquema se ejecutan en el SQL Editor con la sesión del usuario en Chrome (el sistema de permisos bloquea leer el token de `Inversiones/data/`). Supabase avisa de operación destructiva si el SQL contiene `drop`.
 - **Verificado en local:** lint, typecheck, 23 tests unitarios, build; esquema SQL idempotente y RLS probados en PostgreSQL 16; E2E 34/34 contra ese PostgreSQL vía `tests/e2e/fake-supabase.mjs`; carga desde subcarpeta `/Travel-manager/`.
