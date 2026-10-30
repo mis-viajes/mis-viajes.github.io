@@ -1,5 +1,5 @@
 # Publica la app en GitHub Pages en cada push a main:
-# https://diego94diaz-oss.github.io/travel-manager/
+# https://diego94diaz-oss.github.io/Travel-manager/
 # Requisito (una vez): Settings → Pages → Build and deployment → Source: "GitHub Actions".
 name: Publicar en GitHub Pages
 

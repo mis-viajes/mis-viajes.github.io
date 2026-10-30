@@ -11,11 +11,11 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 ## Estado actual
 
-- **Versión estática** (Vite + React + Supabase) lista para publicarse en `https://diego94diaz-oss.github.io/travel-manager/`.
+- **Versión estática** (Vite + React + Supabase) lista para publicarse en `https://diego94diaz-oss.github.io/Travel-manager/`.
 - **Verificado en local (2026-10-30):** lint, typecheck, 23 pruebas unitarias, build de producción; `supabase/schema.sql` ejecutado dos veces sin errores en PostgreSQL 16 con stubs de Supabase; prueba de aislamiento RLS entre dos usuarios (`tests/db/rls-test.sql`); E2E con Playwright 34/34 contra ese PostgreSQL a través de `tests/e2e/fake-supabase.mjs`.
 - **No verificado todavía:** el proyecto Supabase real (falta ejecutar el SQL), el inicio de sesión real, Supabase Storage real (en la E2E es una imitación en memoria), la llamada real a Claude (simulada en la E2E) y las teselas/Nominatim (sin salida a esos servicios desde el entorno de pruebas).
 - **Pendiente para que el enlace funcione:**
-  1. Crear el repositorio `diego94diaz-oss/travel-manager` y subir el código (el entorno de Claude no tenía permiso de escritura en GitHub).
+  1. Crear el repositorio `diego94diaz-oss/Travel-manager` y subir el código (el entorno de Claude no tenía permiso de escritura en GitHub).
   2. Activar GitHub Pages con *Source: GitHub Actions*.
   3. Ejecutar `supabase/schema.sql` en el SQL Editor de Supabase.
 

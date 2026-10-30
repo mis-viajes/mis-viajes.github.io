@@ -66,11 +66,11 @@ Idioma de la interfaz: **español**. Monedas principales: **CLP, EUR, USD**.
 
 ## 4. Arquitectura y stack
 
-App **estática** publicada en GitHub Pages (`https://diego94diaz-oss.github.io/travel-manager/`), con los datos en el **proyecto Supabase compartido** con Mi Día, Finanzas y Kratos. Mismo patrón que el resto del ecosistema del usuario: login con correo y contraseña de Supabase, Row Level Security `user_id = auth.uid()`, sin servidor propio.
+App **estática** publicada en GitHub Pages (`https://diego94diaz-oss.github.io/Travel-manager/`), con los datos en el **proyecto Supabase compartido** con Mi Día, Finanzas y Kratos. Mismo patrón que el resto del ecosistema del usuario: login con correo y contraseña de Supabase, Row Level Security `user_id = auth.uid()`, sin servidor propio.
 
 | Capa | Tecnología | Notas |
 |---|---|---|
-| Build | **Vite + React 19 + TypeScript** | `base: "/travel-manager/"`. Se publica con GitHub Actions (`.github/workflows/deploy.yml`). |
+| Build | **Vite + React 19 + TypeScript** | `base: "./"` (rutas relativas). Se publica con GitHub Actions (`.github/workflows/deploy.yml`). |
 | Rutas | react-router con **HashRouter** (`/#/trips/…`) | GitHub Pages no reescribe rutas: con hash, recargar cualquier página funciona. |
 | UI | **Tailwind CSS 4** + componentes propios (`src/components/ui.tsx`) | Tokens semánticos (`bg-surface`, `text-muted`, `text-accent`…) en `src/index.css`, con variante `.dark`. |
 | Datos | **supabase-js** contra tablas `tm_*` | `src/lib/db.ts` convierte camelCase ↔ snake_case. Lecturas en `src/lib/data.ts`; mutaciones en `src/lib/api.ts`. |
@@ -201,7 +201,7 @@ Futuras: Google Calendar, vuelos (Google Flights **no** tiene API pública), tre
 
 ```bash
 npm install
-npm run dev            # http://localhost:5173/travel-manager/ (usa el Supabase real: requiere iniciar sesión)
+npm run dev            # http://localhost:5173/ (usa el Supabase real: requiere iniciar sesión)
 npm run lint
 npm run typecheck
 npm test               # Vitest

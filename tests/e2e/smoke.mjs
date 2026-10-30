@@ -17,7 +17,7 @@ const { chromium } = load("playwright");
 
 const SHOTS = path.join(path.dirname(fileURLToPath(import.meta.url)), "screenshots");
 fs.mkdirSync(SHOTS, { recursive: true });
-const BASE = (process.env.BASE_URL ?? "http://127.0.0.1:4173/travel-manager/") + "#";
+const BASE = (process.env.BASE_URL ?? "http://127.0.0.1:4173/") + "#";
 
 const results = [];
 const check = (name, ok, extra = "") => {

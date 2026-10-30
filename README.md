@@ -2,7 +2,7 @@
 
 Aplicación personal para planificar y gestionar viajes: destinos, vuelos y equipaje, alojamientos, transporte, actividades, restaurantes, finanzas compartidas, documentos, mapa interactivo e importación inteligente de reservas.
 
-**App:** https://diego94diaz-oss.github.io/travel-manager/
+**App:** https://diego94diaz-oss.github.io/Travel-manager/
 
 Forma parte del mismo ecosistema que Mi Día, Finanzas y Kratos: mismo proyecto Supabase, mismo inicio de sesión y publicación en GitHub Pages.
 
@@ -20,7 +20,7 @@ Vite + React 19 + TypeScript · Tailwind CSS 4 · supabase-js (datos, sesión y 
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173/travel-manager/
+npm run dev        # http://localhost:5173/
 npm run lint
 npm test           # pruebas unitarias
 npm run build      # genera dist/
