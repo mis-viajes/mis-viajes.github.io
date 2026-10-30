@@ -77,7 +77,7 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 ### 2026-10-30 (5) — Nueva dirección
 - Mudada a https://mis-viajes.github.io/ (organización `mis-viajes`, remoto `origin`). El repo anterior queda como remoto `antiguo`: su `gh-pages` redirige y su service worker se elimina solo; no publicar más allí.
-- Pendiente: corrección de Disneyland a $238.672 (detenida por el usuario; sigue en $238.673). Dirección del Hotel Alcyone: 471 o 4712.
+- Decidido por el usuario: Disneyland queda en $238.673 y la dirección del Hotel Alcyone es Calle dei Fabbri 471 (el punto del mapa usa la ubicación del hotel en OpenStreetMap, que lo registra como 4712).
 
 ### 2026-10-30 (4) — Funciones pendientes e instalación
 - Carpeta conectada al repo. Checklist de tareas y maleta con comprobación de peso, calendario mes/semana/día con arrastrar, orden manual de actividades, PDF del itinerario, búsqueda global, filtros de restaurantes, tarjeta en Mi Día.
