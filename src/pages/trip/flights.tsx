@@ -7,6 +7,7 @@ import { KINDS } from "@/components/kind-icon";
 import { RecordDialog } from "@/components/record-dialog";
 import { Sensitive } from "@/components/sensitive";
 import { Badge, BOOKING_TONE, Card, Detail, EmptyState, PageHeader, SectionTitle } from "@/components/ui";
+import { baggageLimits } from "@/lib/domain/checklist";
 import { datePart, formatDate, formatDuration, timePart } from "@/lib/domain/dates";
 import { formatMoney } from "@/lib/domain/money";
 import { findConnections, flightSegment, segmentDuration, transportSegment } from "@/lib/domain/segments";
@@ -195,27 +196,8 @@ export default function FlightsPage() {
  * más restrictiva entre los vuelos que la informan, y qué vuelos no la incluyen.
  */
 function BaggageSummary({ flights }: { flights: FlightWithBaggage[] }) {
-  const categories = ["personal", "cabina", "facturado"] as const;
   const label = (f: FlightWithBaggage) => [f.airline, f.flightNumber].filter(Boolean).join(" ") || `${f.originCode ?? "?"}→${f.destinationCode ?? "?"}`;
-  const rows = categories.map((cat) => {
-    const of = (f: FlightWithBaggage) => f.baggage.filter((b) => b.category === cat);
-    // Incluido: hay franquicia con cantidad > 0 (o sin cantidad indicada). No incluido: cantidad 0 explícita.
-    const included = flights.filter((f) => of(f).some((b) => b.quantity === null || b.quantity > 0));
-    const notIncluded = flights.filter((f) => of(f).length > 0 && of(f).every((b) => b.quantity === 0));
-    const unknown = flights.filter((f) => of(f).length === 0);
-    const allowances = included.flatMap(of);
-    const weights = allowances.map((a) => a.maxWeightKg).filter((w): w is number => w !== null);
-    const quantities = allowances.map((a) => a.quantity).filter((q): q is number => q !== null);
-    return {
-      cat,
-      included: included.length,
-      minWeight: weights.length ? Math.min(...weights) : null,
-      minQty: quantities.length ? Math.min(...quantities) : null,
-      dimensions: [...new Set(allowances.map((a) => a.maxDimensions).filter(Boolean))],
-      notIncluded,
-      unknown,
-    };
-  });
+  const rows = baggageLimits(flights);
 
   return (
     <section>

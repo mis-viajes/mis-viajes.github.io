@@ -70,6 +70,12 @@ export async function documentUrl(key: string): Promise<string> {
   return data.signedUrl;
 }
 
+export async function downloadDocument(key: string): Promise<Blob> {
+  const { data, error } = await supabase.storage.from(DOCS_BUCKET).download(key);
+  if (error || !data) throw new Error("No se pudo descargar el archivo.");
+  return data;
+}
+
 export async function deleteFile(key: string): Promise<void> {
   const { error } = await supabase.storage.from(DOCS_BUCKET).remove([key]);
   if (error) throw error;

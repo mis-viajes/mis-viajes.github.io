@@ -12,7 +12,10 @@ const AppSettings = lazy(() => import("./pages/app-settings"));
 const Dashboard = lazy(() => import("./pages/dashboard"));
 const NewTrip = lazy(() => import("./pages/new-trip"));
 const Trips = lazy(() => import("./pages/trips"));
+const Search = lazy(() => import("./pages/search"));
 const Activities = lazy(() => import("./pages/trip/activities"));
+const Calendar = lazy(() => import("./pages/trip/calendar"));
+const Checklist = lazy(() => import("./pages/trip/checklist"));
 const Destinations = lazy(() => import("./pages/trip/destinations"));
 const Documents = lazy(() => import("./pages/trip/documents"));
 const Finance = lazy(() => import("./pages/trip/finance"));
@@ -21,6 +24,7 @@ const ImportPage = lazy(() => import("./pages/trip/import"));
 const Lodging = lazy(() => import("./pages/trip/lodging"));
 const MapPage = lazy(() => import("./pages/trip/map"));
 const Overview = lazy(() => import("./pages/trip/overview"));
+const Print = lazy(() => import("./pages/trip/print"));
 const Restaurants = lazy(() => import("./pages/trip/restaurants"));
 const TripSettings = lazy(() => import("./pages/trip/settings"));
 const Transport = lazy(() => import("./pages/trip/transport"));
@@ -38,6 +42,9 @@ export default function App() {
               <Route path="trips/new" element={<NewTrip />} />
               <Route path="trips/:tripId" element={<TripLayout />}>
                 <Route index element={<Overview />} />
+                <Route path="calendar" element={<Calendar />} />
+                <Route path="checklist" element={<Checklist />} />
+                <Route path="print" element={<Print />} />
                 <Route path="destinations" element={<Destinations />} />
                 <Route path="flights" element={<Flights />} />
                 <Route path="lodging" element={<Lodging />} />
@@ -50,6 +57,7 @@ export default function App() {
                 <Route path="import" element={<ImportPage />} />
                 <Route path="settings" element={<TripSettings />} />
               </Route>
+              <Route path="buscar" element={<Search />} />
               <Route path="ajustes" element={<AppSettings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

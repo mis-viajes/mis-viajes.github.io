@@ -1,5 +1,6 @@
-import { Database, TriangleAlert } from "lucide-react";
+import { Database, TriangleAlert, WifiOff } from "lucide-react";
 import { isMissingSchema } from "@/lib/db";
+import { isNetworkError } from "@/lib/offline";
 import { Card } from "@/components/ui";
 
 export function LoadingSkeleton() {
@@ -35,6 +36,16 @@ export function DataError({ error }: { error: unknown }) {
           <li>Vuelve aquí y recarga la página.</li>
         </ol>
         <p className="mt-3 text-xs text-muted">Crea tablas con prefijo tm_ y no modifica las de tus otras apps.</p>
+      </Card>
+    );
+  }
+  if (isNetworkError(error)) {
+    return (
+      <Card className="mx-auto max-w-2xl p-6">
+        <p className="flex items-center gap-2 font-semibold">
+          <WifiOff size={18} className="text-warning" /> Sin conexión
+        </p>
+        <p className="mt-2 text-sm text-muted">Esta pantalla todavía no tiene una copia en este dispositivo. Ábrela una vez con internet para tenerla disponible sin conexión.</p>
       </Card>
     );
   }

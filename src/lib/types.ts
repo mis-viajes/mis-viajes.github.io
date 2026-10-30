@@ -155,6 +155,8 @@ export type Activity = Row & {
   bookingCode: string | null;
   lat: number | null;
   lng: number | null;
+  /** Orden manual dentro del día (solo decide entre actividades sin hora). */
+  position?: number;
   notes: string | null;
 };
 
@@ -197,6 +199,24 @@ export type DocumentRow = Row & {
   size: number;
   linkedType: "flight" | "lodging" | "transport" | "activity" | "expense" | null;
   linkedId: string | null;
+  notes: string | null;
+};
+
+export type ChecklistStatus = "pendiente" | "en_curso" | "hecho";
+
+/** Tarea por hacer antes o durante el viaje, u objeto de la maleta (según `list`). */
+export type ChecklistItem = Row & {
+  tripId: string;
+  list: "tareas" | "maleta";
+  title: string;
+  groupName: string | null;
+  status: ChecklistStatus;
+  priority: "alta" | "media" | "baja";
+  dueDate: string | null;
+  bag: BaggageAllowance["category"] | null;
+  quantity: number | null;
+  /** Peso de una unidad. */
+  weightKg: number | null;
   notes: string | null;
 };
 

@@ -1,5 +1,5 @@
 import { fromZonedTime } from "date-fns-tz";
-import { addDays, differenceInCalendarDays, format, parseISO } from "date-fns";
+import { addDays, addMonths, differenceInCalendarDays, endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek } from "date-fns";
 import { es } from "date-fns/locale";
 
 /** Fecha local de hoy en formato YYYY-MM-DD. */
@@ -27,6 +27,31 @@ export function dateRange(startDate: string, endDate: string): string[] {
   if (days <= 0 || days > 400) return [];
   const start = parseISO(startDate);
   return Array.from({ length: days }, (_, i) => format(addDays(start, i), "yyyy-MM-dd"));
+}
+
+/** Suma días a una fecha YYYY-MM-DD. */
+export function shiftDate(date: string, days: number): string {
+  return format(addDays(parseISO(date), days), "yyyy-MM-dd");
+}
+
+/** Primer día del mes que está `months` meses después de `date`. */
+export function shiftMonth(date: string, months: number): string {
+  return format(startOfMonth(addMonths(parseISO(date), months)), "yyyy-MM-dd");
+}
+
+/** Los 7 días (lunes a domingo) de la semana que contiene `date`. */
+export function weekDays(date: string): string[] {
+  const start = startOfWeek(parseISO(date), { weekStartsOn: 1 });
+  return Array.from({ length: 7 }, (_, i) => format(addDays(start, i), "yyyy-MM-dd"));
+}
+
+/** Semanas completas (de lunes a domingo) que cubren el mes de `date`. */
+export function monthWeeks(date: string): string[][] {
+  const month = parseISO(date);
+  const first = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
+  const last = endOfWeek(endOfMonth(month), { weekStartsOn: 1 });
+  const weeks = Math.round((differenceInCalendarDays(last, first) + 1) / 7);
+  return Array.from({ length: weeks }, (_, i) => weekDays(format(addDays(first, i * 7), "yyyy-MM-dd")));
 }
 
 export type TripPhase = "futuro" | "en_curso" | "finalizado" | "cancelado";

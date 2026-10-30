@@ -1,11 +1,13 @@
-import { deleteRows, insertRow, insertRows, selectAll, selectOne, updateRows, type TableKey } from "./db";
+import { deleteRows, insertRow, insertRows, isMissingSchema, selectAll, selectOne, updateRows, type TableKey } from "./db";
 import { ENTITIES, type EntityName } from "./entities";
 import { parseEntityForm, type FormState } from "./forms";
 import { notifyDataChanged } from "./hooks";
 import { convertMinor, parseAmount, splitEvenly } from "./domain/money";
 import { EXPENSE_CATEGORY, EXPENSE_STATUS } from "./labels";
+import { removeFile } from "./offline";
 import { deleteFile, deleteTripFiles } from "./storage";
-import type { Activity, Destination, DocumentRow, Expense, ExpenseShare, Restaurant, Traveler, Trip } from "./types";
+import type { Suggestion } from "./domain/checklist";
+import type { Activity, ChecklistItem, ChecklistStatus, Destination, DocumentRow, Expense, ExpenseShare, Restaurant, Traveler, Trip } from "./types";
 
 /**
  * Mutaciones. Mantienen la firma (prev, FormData) => FormState de los formularios
@@ -32,7 +34,11 @@ const TRIP_TABLES: Partial<Record<EntityName, TableKey>> = {
   transport: "transport",
   activity: "activity",
   restaurant: "restaurant",
+  task: "checklist",
+  packingItem: "checklist",
 };
+
+const CHECKLIST_ENTITIES = new Set<EntityName>(["task", "packingItem"]);
 
 /** Crea o actualiza cualquier entidad declarada en ENTITIES. `parentId` = id del vuelo (equipaje). */
 export async function saveEntity(
@@ -88,6 +94,8 @@ export async function saveEntity(
     if (entity === "destination" && !id) {
       values.position = (await selectAll<Destination>("destination", { tripId })).length;
     }
+    if (entity === "task") values.list = "tareas";
+    if (entity === "packingItem") values.list = "maleta";
     let savedId = id;
     if (id) await updateRows(table, { id, tripId }, values);
     else savedId = (await insertRow<{ id: string }>(table, { ...values, tripId })).id;
@@ -118,7 +126,7 @@ export async function deleteEntity(entity: EntityName, tripId: string, id: strin
       }
     }
     await deleteRows(table, { id, tripId });
-    if (entity !== "traveler" && entity !== "destination") {
+    if (!CHECKLIST_ENTITIES.has(entity) && entity !== "traveler" && entity !== "destination") {
       // Los gastos se conservan, pero dejan de apuntar a la reserva eliminada.
       await updateRows("expense", { tripId, sourceId: id }, { sourceType: null, sourceId: null });
     }
@@ -136,7 +144,7 @@ export async function moveDestination(tripId: string, id: string, direction: -1 
   notifyDataChanged();
 }
 
-/** Duplica un viaje como plantilla: destinos, viajeros, actividades y restaurantes, sin reservas ni gastos. */
+/** Duplica un viaje como plantilla: destinos, viajeros, actividades, restaurantes y checklist (sin marcar), sin reservas ni gastos. */
 export async function duplicateTrip(tripId: string): Promise<string> {
   const trip = await getTrip(tripId);
   const created = await insertRow<Trip>("trip", {
@@ -178,8 +186,34 @@ export async function duplicateTrip(tripId: string): Promise<string> {
       listStatus: r.listStatus === "reservado" || r.listStatus === "visitado" ? "por_visitar" : r.listStatus,
     })),
   );
+  const checklist = await selectAll<ChecklistItem>("checklist", { tripId }).catch((e) => {
+    if (isMissingSchema(e)) return [];
+    throw e;
+  });
+  await insertRows("checklist", checklist.map((c) => ({ ...strip(c), status: "pendiente", dueDate: null })));
   notifyDataChanged();
   return created.id;
+}
+
+/**
+ * Coloca una actividad en un día (null = sin fecha). `orderedIds` es el orden completo del día
+ * de destino; si se omite, la actividad solo cambia de fecha.
+ */
+export async function moveActivity(tripId: string, id: string, date: string | null, orderedIds?: string[]) {
+  await updateRows("activity", { id, tripId }, { date });
+  if (orderedIds) await Promise.all(orderedIds.map((a, position) => updateRows("activity", { id: a, tripId }, { position })));
+  notifyDataChanged();
+}
+
+export async function setChecklistStatus(tripId: string, id: string, status: ChecklistStatus) {
+  await updateRows("checklist", { id, tripId }, { status });
+  notifyDataChanged();
+}
+
+/** Añade sugerencias de una vez: un solo insert para que no queden a medias. */
+export async function addChecklistItems(tripId: string, items: Suggestion[]) {
+  await insertRows("checklist", items.map((s) => ({ ...s, tripId })));
+  notifyDataChanged();
 }
 
 const COORD_COLUMNS: Record<string, [string, string][]> = {
@@ -333,5 +367,6 @@ export async function deleteDocument(tripId: string, id: string) {
   if (!doc) return;
   await deleteRows("document", { id, tripId });
   await deleteFile(doc.storageKey).catch((e) => console.warn("No se pudo borrar el archivo", e));
+  await removeFile(doc.storageKey).catch(() => {});
   notifyDataChanged();
 }

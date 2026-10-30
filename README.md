@@ -35,3 +35,13 @@ npm run test:e2e
 ```
 
 Más detalle técnico en [`CLAUDE.md`](CLAUDE.md).
+
+## Instalar la app
+
+Abre https://diego94diaz-oss.github.io/Travel-manager/ e inicia sesión.
+
+- **PC (Chrome o Edge):** icono de instalar en la barra de direcciones.
+- **Android (Chrome):** menú ⋮ → Instalar aplicación.
+- **iPhone (Safari):** Compartir → Agregar a inicio.
+
+Sin internet se consulta lo último abierto en ese dispositivo. Los archivos se guardan con «Guardar para usar sin conexión» en Documentos. Editar requiere conexión.

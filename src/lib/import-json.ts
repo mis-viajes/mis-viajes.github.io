@@ -46,6 +46,7 @@ const COLUMNS = {
     "paidMinor", "paymentMethod", "splitMode", "notes",
   ],
   exchangeRate: ["fromCurrency", "toCurrency", "rate", "date", "source"],
+  checklist: ["list", "title", "groupName", "status", "priority", "dueDate", "bag", "quantity", "weightKg", "notes"],
 } as const;
 
 function pick(obj: Json, keys: readonly string[]): Json {
@@ -143,6 +144,7 @@ export async function importBackup(text: string, onProgress?: (msg: string) => v
       remember("expense", e.id, created.id);
       summary.expenses++;
     }
+    await insertRows("checklist", list(bundle.checklist).map((c) => ({ ...pick(c, COLUMNS.checklist), tripId })));
     for (const doc of list(bundle.documents)) {
       if (typeof doc.fileBase64 !== "string") {
         summary.skippedDocuments++;

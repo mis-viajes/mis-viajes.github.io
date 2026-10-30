@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { fetchAllBundles, fetchExchangeRates, fetchTripBundle, fetchTrips, latestRates } from "./data";
+import { isNetworkError, readCached, setUsingCopy, writeCached } from "./offline";
 
 // Cada mutación incrementa la versión; las vistas suscritas vuelven a leer los datos.
 let version = 0;
@@ -35,9 +36,27 @@ function useAsync<T>(fn: () => Promise<T>, key: string): AsyncState<T> {
   const [state, setState] = useState<{ key: string | null; data?: T; error: unknown }>({ key: null, error: null });
   useEffect(() => {
     let cancelled = false;
-    fnRef.current().then(
-      (data) => !cancelled && setState({ key: requestKey, data, error: null }),
-      (error) => !cancelled && setState((s) => ({ key: requestKey, data: s.key?.startsWith(`${key}#`) ? s.data : undefined, error })),
+    let fresh = false;
+    // La copia local se pinta al instante; con mala señal la pantalla no queda en blanco.
+    readCached<T>(key).then((copy) => {
+      if (copy === undefined || cancelled || fresh) return;
+      setState((s) => (s.key?.startsWith(`${key}#`) ? s : { key: `${key}#copia`, data: copy, error: null }));
+    });
+    // Sin red no se intenta: con el token vencido, supabase-js tardaría unos 30 s en rendirse.
+    (navigator.onLine ? fnRef.current() : Promise.reject(new Error("Failed to fetch"))).then(
+      (data) => {
+        fresh = true;
+        setUsingCopy(false);
+        void writeCached(key, data);
+        if (!cancelled) setState({ key: requestKey, data, error: null });
+      },
+      async (error) => {
+        const copy = isNetworkError(error) ? await readCached<T>(key) : undefined;
+        if (copy !== undefined) setUsingCopy(true);
+        if (cancelled) return;
+        if (copy !== undefined) setState({ key: requestKey, data: copy, error: null });
+        else setState((s) => ({ key: requestKey, data: s.key?.startsWith(`${key}#`) ? s.data : undefined, error }));
+      },
     );
     return () => {
       cancelled = true;

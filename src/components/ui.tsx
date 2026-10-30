@@ -23,6 +23,15 @@ export function ButtonLink({
   return <Link className={cx(buttonStyles[variant], className)} {...props} />;
 }
 
+/** Enlace de filtro con forma de píldora. */
+export function FilterChip({ href, active, children }: { href: string; active: boolean; children: ReactNode }) {
+  return (
+    <Link to={href} className={cx("rounded-full border px-3 py-1", active ? "border-accent bg-accent-soft text-accent" : "border-line text-muted hover:text-ink")}>
+      {children}
+    </Link>
+  );
+}
+
 export function Card({ className, children, ...props }: ComponentProps<"div">) {
   return (
     <div className={cx("rounded-xl border border-line bg-surface", className)} {...props}>

@@ -9,6 +9,7 @@ const SECTION_PATH: Record<Alert["section"], string> = {
   transport: "transport",
   activities: "activities",
   finance: "finance",
+  checklist: "checklist",
   overview: "",
 };
 

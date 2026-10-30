@@ -96,3 +96,23 @@ dialog::backdrop {
   background: var(--color-surface);
   color: var(--color-ink);
 }
+
+/* El PDF siempre sale claro, aunque la app esté en modo oscuro. */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  .dark {
+    --color-bg: #ffffff;
+    --color-surface: #ffffff;
+    --color-surface-2: #f1f3f6;
+    --color-line: #d5d9e0;
+    --color-ink: #16191f;
+    --color-muted: #5f6774;
+    color-scheme: light;
+  }
+  html,
+  body {
+    background: #ffffff;
+  }
+}

@@ -41,7 +41,7 @@ function activity(over: Partial<Activity>): Activity {
 }
 
 const bundle = (over: Partial<TripBundle>): TripBundle => ({
-  trip, travelers: [], destinations: [], flights: [], lodgings: [], transports: [], activities: [], restaurants: [], expenses: [], documents: [], ...over,
+  trip, travelers: [], destinations: [], flights: [], lodgings: [], transports: [], activities: [], restaurants: [], expenses: [], documents: [], checklist: [], checklistAvailable: true, ...over,
 });
 
 describe("fechas", () => {

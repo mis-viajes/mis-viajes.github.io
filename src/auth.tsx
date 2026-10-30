@@ -2,6 +2,7 @@ import type { Session } from "@supabase/supabase-js";
 import { Plane } from "lucide-react";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { buttonStyles, Card } from "@/components/ui";
+import { clearOfflineData, isNetworkError } from "@/lib/offline";
 import { isTestMode, supabase } from "@/lib/supabase";
 
 type AuthState = { email: string | null; signOut: () => Promise<void> };
@@ -15,21 +16,60 @@ export const useAuth = () => useContext(AuthContext);
 export function AuthGate({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(isTestMode ? null : undefined);
 
+  const [offline, setOffline] = useState(false);
+
   useEffect(() => {
     if (isTestMode) return;
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
+    // Sin internet no se puede renovar el token vencido. Eso no es un cierre de sesión:
+    // si queda una sesión guardada, se entra en modo consulta con la copia local.
+    let watchdog: ReturnType<typeof setTimeout>;
+    const enterOffline = () => {
+      setOffline(true);
+      setSession((s) => s ?? null);
+    };
+    const load = () => {
+      // getSession reintenta renovar el token durante unos 30 s: no se hace esperar en la pantalla de carga.
+      clearTimeout(watchdog);
+      if (hasStoredSession()) watchdog = setTimeout(enterOffline, navigator.onLine ? 5000 : 0);
+      return supabase.auth.getSession().then(({ data, error }) => {
+        clearTimeout(watchdog);
+        const cutOff = !data.session && (!navigator.onLine || (error !== null && isNetworkError(error))) && hasStoredSession();
+        if (cutOff) return enterOffline();
+        setOffline(false);
+        setSession(data.session);
+      });
+    };
+    load();
+    window.addEventListener("online", load);
+    const { data } = supabase.auth.onAuthStateChange((_event, s) => {
+      if (s || navigator.onLine) setSession(s);
+    });
+    return () => {
+      clearTimeout(watchdog);
+      window.removeEventListener("online", load);
+      data.subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
+    await clearOfflineData();
     await supabase.auth.signOut();
   };
 
   if (isTestMode) return <AuthContext.Provider value={{ email: "modo de prueba", signOut }}>{children}</AuthContext.Provider>;
   if (session === undefined) return <div className="grid min-h-dvh place-items-center text-sm text-muted">Cargando…</div>;
+  if (!session && offline) return <AuthContext.Provider value={{ email: null, signOut }}>{children}</AuthContext.Provider>;
   if (!session) return <Login />;
   return <AuthContext.Provider value={{ email: session.user.email ?? null, signOut }}>{children}</AuthContext.Provider>;
+}
+
+/** supabase-js guarda la sesión en localStorage como sb-<proyecto>-auth-token. */
+function hasStoredSession(): boolean {
+  try {
+    return Object.keys(localStorage).some((k) => /^sb-.+-auth-token$/.test(k));
+  } catch {
+    return false;
+  }
 }
 
 function Login() {

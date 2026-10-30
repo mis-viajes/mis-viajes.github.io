@@ -79,7 +79,9 @@ App **estática** publicada en GitHub Pages (`https://diego94diaz-oss.github.io/
 | Mapas | Leaflet + react-leaflet + teselas OSM | Geocodificación con Nominatim desde el navegador. |
 | Importación | **API de Claude** desde el navegador (`@anthropic-ai/sdk`, `dangerouslyAllowBrowser`) | Clave del usuario guardada solo en `localStorage` del dispositivo (ver §9 bis). El SDK se carga bajo demanda. |
 | Validación | Formularios declarativos (`src/lib/entities.ts`) + `parseEntityForm` (Zod para formatos) | La misma definición pinta el formulario y valida antes de escribir. |
-| Tests | Vitest (`src/**/*.test.ts`) + E2E Playwright (`tests/e2e/smoke.mjs`) contra PostgreSQL real | `tests/e2e/fake-supabase.mjs` imita PostgREST/Storage aplicando RLS de verdad. |
+| App instalable | **vite-plugin-pwa** (manifest + service worker Workbox) | Precarga el código para abrir sin internet. Iconos en `public/icons/`. |
+| Sin conexión | Copia en **IndexedDB** (`src/lib/offline.ts`) | Última lectura de cada consulta y documentos guardados a mano. Solo lectura; se borra al cerrar sesión. |
+| Tests | Vitest (`src/**/*.test.ts`) + E2E Playwright (`tests/e2e/smoke.mjs`, `features.mjs`) contra PostgreSQL real | `tests/e2e/fake-supabase.mjs` imita PostgREST/Storage aplicando RLS de verdad. |
 
 ### Flujo de datos
 
@@ -91,6 +93,9 @@ Lógica pura y testeada: src/lib/domain/*  (dinero, fechas, finanzas, alertas, i
 
 - `pages/trip/layout.tsx` carga el viaje completo una vez y lo pasa a cada sección con `useTrip()` (Outlet context).
 - Toda mutación termina en `notifyDataChanged()`; no hay caché que invalidar a mano.
+- `useAsync` pinta la copia local al instante y la sustituye al llegar los datos. Sin red usa solo la copia y `OfflineNotice` lo avisa. Editar requiere conexión.
+- `AuthGate`: sin internet, un token vencido no expulsa al login. Si hay sesión guardada se entra en modo consulta sin esperar a los reintentos de supabase-js.
+- Tablas nuevas: `data.ts` tolera que falten (`checklistAvailable`) para publicar la app antes de que el usuario ejecute el SQL.
 - Los formularios usan `useActionState` con funciones `(prev, FormData) => FormState`, enviadas con `onSubmit` + `startTransition` para que React no los vacíe al haber errores.
 
 ### Estructura
@@ -117,7 +122,7 @@ Lógica pura y testeada: src/lib/domain/*  (dinero, fechas, finanzas, alertas, i
 
 **Fuente de verdad: `supabase/schema.sql`** (columnas snake_case) y `src/lib/types.ts` (camelCase). Todas las tablas llevan `user_id` (por defecto `auth.uid()`), y salvo `tm_trips` y `tm_exchange_rates`, también `trip_id` con borrado en cascada. Las políticas exigen además que la fila cuelgue de un viaje del propio usuario.
 
-Tablas: `tm_trips`, `tm_travelers`, `tm_destinations`, `tm_flights`, `tm_baggage_allowances` (por vuelo), `tm_lodgings`, `tm_transports`, `tm_activities`, `tm_restaurants`, `tm_documents`, `tm_expenses` (con el reparto en la columna jsonb `shares`: `[{travelerId, shareBaseMinor}]`), `tm_exchange_rates` (por usuario).
+Tablas: `tm_trips`, `tm_travelers`, `tm_destinations`, `tm_flights`, `tm_baggage_allowances` (por vuelo), `tm_lodgings`, `tm_transports`, `tm_activities`, `tm_restaurants`, `tm_documents`, `tm_expenses` (con el reparto en la columna jsonb `shares`: `[{travelerId, shareBaseMinor}]`), `tm_exchange_rates` (por usuario), `tm_checklist_items` (tareas y maleta, según la columna `list`).
 
 Cambios de esquema: añadir SQL idempotente al final de `supabase/schema.sql` (`alter table … add column if not exists …`), actualizar `types.ts`, y pedir al usuario que lo ejecute en Supabase. Probarlo antes en el PostgreSQL local (`tests/db`).
 
@@ -147,7 +152,10 @@ Cambios de esquema: añadir SQL idempotente al final de `supabase/schema.sql` (`
 - **Documentos:** biblioteca por viaje, PDF e imágenes, asociables a vuelo / alojamiento / actividad / transporte / gasto.
 - **Mapa interactivo:** destinos, alojamientos, aeropuertos, estaciones, actividades y restaurantes; capas, centrar por ciudad, distancia y tiempos estimados entre dos puntos, lugares cercanos, distancias desde cada alojamiento, ubicación de lugares sin coordenadas con revisión.
 - **Importación inteligente:** PDF, imagen o texto → extracción con Claude → revisión y corrección por elemento → guardado de reserva, equipaje, documento y gasto opcional.
-- **Checklist / tareas:** listas configurables por viaje con fecha límite, prioridad y estado; plantilla de tareas sugeridas.
+- **Checklist:** tareas con fecha límite, prioridad y estado, y maleta por tipo de equipaje con peso. Sugerencias generadas de una plantilla y de lo que el viaje tiene sin reservar. Compara la maleta con el límite más restrictivo de los vuelos.
+- **Calendario:** vistas mes, semana y día; arrastrar actividades entre días.
+- **Itinerario en PDF:** `/trips/:id/print` + diálogo de impresión; códigos de reserva solo si el usuario lo marca.
+- **Búsqueda global:** `/buscar` (Ctrl+K), sin acentos ni mayúsculas. No busca códigos de reserva ni información de acceso.
 
 ### Automatizaciones (lógica en `lib/domain/`, con tests)
 
@@ -173,10 +181,11 @@ Futuras: Google Calendar, vuelos (Google Flights **no** tiene API pública), tre
 |---|---|---|
 | 0 | Arquitectura, modelo de datos, documentación | ✅ |
 | 1 | Base: navegación, tema claro/oscuro, dashboard, viajes, viajeros, destinos, persistencia en Supabase | ✅ |
-| 2 | Vuelos (zonas horarias, conexiones), equipaje por vuelo + resumen, alojamientos, transporte | ✅ — falta checklist de maleta |
-| 3 | Actividades, restaurantes, resumen día a día | ✅ parcial — faltan calendario mensual/semanal y arrastrar para reordenar |
+| 2 | Vuelos (zonas horarias, conexiones), equipaje por vuelo + resumen, alojamientos, transporte, checklist de maleta | ✅ |
+| 3 | Actividades, restaurantes, resumen día a día, calendario, arrastrar para reordenar | ✅ |
 | 4 | Finanzas: pagado/pendiente/previsto, reparto, saldos, multimoneda, CSV | ✅ |
-| 5 | Mapa ✅ · Importación ✅ · Documentos ✅ · Alertas ✅ · Exportar/importar JSON ✅ · Pendiente: checklist/tareas, PDF del itinerario, búsqueda global, acceso desde Mi Día | 🟡 |
+| 5 | Mapa, importación, documentos, alertas, exportar/importar JSON, checklist, PDF del itinerario, búsqueda global, acceso desde Mi Día | ✅ |
+| 6 | App instalable en PC y celular; consulta sin conexión | ✅ |
 
 ### Al terminar cada fase (Definition of Done)
 
@@ -210,7 +219,7 @@ npm run build          # dist/ (lo hace GitHub Actions al publicar)
 # E2E local (ver cabecera de tests/e2e/smoke.mjs):
 npm run test:db        # servidor de pruebas sobre PostgreSQL local
 npm run build:test && npm run preview:test
-npm run test:e2e
+npm run test:e2e       # smoke.mjs + features.mjs (ESQUEMA_ANTIGUO=1: prueba la app sin las tablas nuevas)
 ```
 
 ## 9 bis. Seguridad
@@ -220,6 +229,7 @@ npm run test:e2e
 - Códigos de reserva e información de acceso se muestran enmascarados (`components/sensitive.tsx`). Nunca se guardan contraseñas ni números de tarjeta.
 - Archivos: tipos MIME permitidos, 20 MB máximo, bucket privado y enlaces firmados temporales.
 - Eliminar siempre pide confirmación (`components/delete-button.tsx`).
+- La copia sin conexión (IndexedDB) contiene reservas y documentos sin cifrar en el dispositivo; se borra al cerrar sesión. Los códigos solo salen en el PDF si se marca la opción.
 
 ## 10. Registro de decisiones técnicas
 
@@ -237,3 +247,9 @@ npm run test:e2e
 | 2026-10-30 | Mapa Leaflet + OSM; tiempos estimados + enlaces a Google Maps | Sin claves ni costos; no se presentan estimaciones como rutas reales. |
 | 2026-10-30 | Rediseño visual: fotos de ciudades (Wikimedia Commons), portada grande, línea de tiempo, mapa de ruta en el resumen, tarjetas de embarque, gráficos de gastos | Pedido del usuario («algo más visual»). Gráfico de categorías como barra segmentada (no circular) siguiendo la guía de visualización; paleta categórica validada para daltonismo en claro y oscuro. |
 | 2026-10-30 | Un destino con una sola fecha conocida solo cuenta ese día | Antes se extendía a todo el viaje y mostraba ciudades equivocadas en el día a día. |
+
+| 2026-10-30 | **PWA con vite-plugin-pwa + copia en IndexedDB** | El usuario quiere instalarla en PC y celular. IndexedDB y no localStorage: el origen se comparte con las otras apps y localStorage tiene un cupo común. |
+| 2026-10-30 | Sin conexión solo lectura, sin cola de cambios | Una cola de escrituras exige resolver conflictos entre dispositivos; para consultar el viaje no hace falta. |
+| 2026-10-30 | Una sola tabla `tm_checklist_items` para tareas y maleta | Comparten casi todo (título, estado, grupo); la columna `list` las separa. |
+| 2026-10-30 | PDF con el diálogo de impresión, sin librería | Sin dependencias ni peso extra; el resultado es texto seleccionable. |
+| 2026-10-30 | Mapa sin teselas offline | Las teselas de OSM son respuestas opacas que consumen mucha cuota, y OSM no permite descargas masivas. |

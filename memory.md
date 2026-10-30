@@ -11,9 +11,11 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 ## Estado actual
 
+- **2026-10-30 (sesión 4):** completadas todas las funciones del plan e instalación como app. La carpeta local ya es el repositorio git (`origin` = `Travel-manager`, rama `main`; en sesiones anteriores no lo era). Verificado: 40 tests unitarios, E2E 34/34 + 29/29 contra PostgreSQL real, migración desde el esquema antiguo conservando datos, RLS de la tabla nueva.
+
 - **Publicada:** https://diego94diaz-oss.github.io/Travel-manager/ (repo `diego94diaz-oss/Travel-manager`, con T mayúscula). Cada push a `main` la compila y la copia a la rama `gh-pages` (workflow verificado: éxito).
 - Comprobado en producción: la página carga sin errores de JavaScript y muestra el inicio de sesión de Supabase.
-- **Falta (solo lo puede hacer el usuario):** ejecutar `supabase/schema.sql` en el SQL Editor de Supabase. Hasta entonces la API responde `PGRST205` (tabla `tm_trips` no existe) y la app muestra la pantalla «Falta preparar la base de datos». Claude no tiene acceso de administración a Supabase (solo la clave publicable).
+- El usuario ya ejecutó el esquema inicial y tiene su viaje cargado en la app (dicho por el usuario). Los cambios de esquema los ejecuta el usuario.
 - **Verificado en local:** lint, typecheck, 23 tests unitarios, build; esquema SQL idempotente y RLS probados en PostgreSQL 16; E2E 34/34 contra ese PostgreSQL vía `tests/e2e/fake-supabase.mjs`; carga desde subcarpeta `/Travel-manager/`.
 - **Sin verificar aún con datos reales:** login real, Supabase Storage real, llamada real a Claude (simulada en la E2E).
 - GitHub Pages se activó con la rama `gh-pages` porque el entorno de Claude no puede cambiar los ajustes de Pages por API.
@@ -28,11 +30,10 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 ## Próximos pasos
 
-1. Que el usuario ejecute `supabase/schema.sql`; después, probar con la cuenta real (crear viaje, subir documento, importar).
-2. Añadir Travel Manager a la barra «Mis apps» de Mi Día (`js/config.js` → `APPS` y `LINKS`) y, opcionalmente, una tarjeta con el próximo viaje.
-3. Checklist de maleta y tareas por viaje.
-4. Calendario mensual/semanal; exportar itinerario a PDF; importar desde JSON; búsqueda global.
-5. Valorar mover la llamada a Claude a una Supabase Edge Function.
+1. **Que el usuario ejecute de nuevo `supabase/schema.sql`** en Supabase (crea `tm_checklist_items` y `tm_activities.position`; es idempotente). Hasta entonces Checklist muestra cómo activarla y el resto funciona.
+2. Probar en el dispositivo real: instalar en PC y Pixel, y abrir sin internet con la cuenta real.
+3. Comprobar con datos reales lo que solo se probó en local: Supabase Storage y la llamada a Claude (requiere clave de Anthropic).
+4. Valorar mover la llamada a Claude a una Supabase Edge Function.
 
 ---
 
@@ -55,7 +56,7 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 | # | Pregunta | Estado |
 |---|---|---|
 | 1 | Repositorio | Resuelta: el usuario creó `Travel-manager`; Claude tiene permiso de escritura en esta sesión. |
-| 2 | ¿Añadir Travel Manager a Mi Día? | Abierta (propuesto) |
+| 2 | ¿Añadir Travel Manager a Mi Día? | Resuelta: acceso en «Mis apps» y tarjeta con el próximo viaje. |
 | 3 | ¿Clave de API de Anthropic para la importación? | Abierta |
 | 4 | ¿Hay viajes reales para cargar? | Abierta |
 
@@ -66,11 +67,18 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 - Las tablas viven en un Supabase compartido con otras apps: todo cambio de esquema debe ser idempotente, con prefijo `tm_`, y probarse en el PostgreSQL local (`tests/db`) antes de pedir al usuario que lo ejecute.
 - `tests/e2e/fake-supabase.mjs` no verifica tokens y su Storage es en memoria: sirve para probar la app y el esquema, no sustituye una prueba con el Supabase real.
 - En la E2E, las páginas se cargan bajo demanda: esperar a un encabezado antes de leer el texto.
-- El entorno de Claude no puede descargar binarios externos (p. ej. PostgREST) ni crear repos/pedir escritura en GitHub sin autorización explícita del usuario.
+- La E2E sin PostgreSQL instalado: `embedded-postgres` con `--encoding=UTF8 --locale=C` en una carpeta temporal; Playwright por `NODE_PATH`; `.env.test.local` (ignorado por git) con `VITE_TEST_ACCESS_TOKEN`; `BASE_URL=http://localhost:4173/`.
+- Chromium sin interfaz descarga los PDF en vez de abrirlos: en la E2E se mira la petición, no la URL de la pestaña.
+- El entorno en la nube de Claude no podía descargar binarios externos (p. ej. PostgREST) ni crear repos/pedir escritura en GitHub sin autorización explícita del usuario.
 
 ---
 
 ## Bitácora de sesiones
+
+### 2026-10-30 (4) — Funciones pendientes e instalación
+- Carpeta conectada al repo. Checklist de tareas y maleta con comprobación de peso, calendario mes/semana/día con arrastrar, orden manual de actividades, PDF del itinerario, búsqueda global, filtros de restaurantes, tarjeta en Mi Día.
+- App instalable (PC y celular) y consulta sin conexión, incluidos documentos guardados a mano y sesión con token vencido.
+- Corregido bug: «Abrir» en Documentos apuntaba a `/api/…`, ruta de la antigua versión Next.js que no existe en GitHub Pages.
 
 ### 2026-10-30 (3) — Versión publicable
 - El usuario pidió un enlace propio (opción 1: GitHub Pages + Supabase). Se rehízo la app como SPA estática reutilizando la lógica de dominio, formularios y componentes de la versión Next.js.

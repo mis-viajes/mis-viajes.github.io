@@ -108,6 +108,18 @@ export const DOCUMENT_TYPE: Record<string, string> = {
   otro: "Otro",
 };
 
+export const CHECKLIST_STATUS: Record<string, string> = {
+  pendiente: "Pendiente",
+  en_curso: "En curso",
+  hecho: "Hecho",
+};
+
+export const CHECKLIST_PRIORITY: Record<string, string> = {
+  alta: "Alta",
+  media: "Media",
+  baja: "Baja",
+};
+
 export function options(map: Record<string, string>) {
   return Object.entries(map).map(([value, label]) => ({ value, label }));
 }

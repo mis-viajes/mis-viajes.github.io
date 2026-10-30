@@ -1,5 +1,5 @@
 import { useTrip } from "@/pages/trip/context";
-import { BedDouble, CircleCheck, Plane, Wallet } from "lucide-react";
+import { BedDouble, CircleCheck, FileDown, Plane, Wallet } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { Link } from "react-router";
 import { AlertList } from "@/components/alert-list";
@@ -140,7 +140,11 @@ export default function TripOverviewPage() {
       )}
 
       <section>
-        <SectionTitle title="Día a día" subtitle="Dónde estarás, cómo te moverás, dónde dormirás y qué harás" />
+        <SectionTitle
+          title="Día a día"
+          subtitle="Dónde estarás, cómo te moverás, dónde dormirás y qué harás"
+          action={<Link to={`/trips/${tripId}/print`} className="inline-flex items-center gap-1 text-sm text-accent hover:underline"><FileDown size={15} /> PDF</Link>}
+        />
         <TripTimeline days={days} tripId={tripId} base={base} today={today} />
       </section>
 

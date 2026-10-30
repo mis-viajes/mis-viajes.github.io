@@ -13,7 +13,7 @@
     "build:test": "vite build --mode test --outDir dist-test",
     "preview:test": "vite preview --mode test --outDir dist-test --port 4173 --strictPort",
     "test:db": "node tests/e2e/fake-supabase.mjs",
-    "test:e2e": "node tests/e2e/smoke.mjs"
+    "test:e2e": "node tests/e2e/smoke.mjs && node tests/e2e/features.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",
@@ -46,6 +46,7 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
     "vite": "^7.3.1",
+    "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.0.5"
   }
 }

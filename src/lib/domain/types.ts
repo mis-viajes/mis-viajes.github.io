@@ -1,6 +1,7 @@
 import type {
   Activity,
   BaggageAllowance,
+  ChecklistItem,
   Destination,
   DocumentRow,
   Flight,
@@ -26,4 +27,7 @@ export type TripBundle = {
   restaurants: Restaurant[];
   expenses: ExpenseWithShares[];
   documents: DocumentRow[];
+  checklist: ChecklistItem[];
+  /** false si aún no se ejecutó en Supabase la parte del esquema que crea la checklist. */
+  checklistAvailable: boolean;
 };

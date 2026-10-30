@@ -337,3 +337,42 @@ create policy "tm_docs_insert" on storage.objects for insert to authenticated
   with check (bucket_id = 'tm-documentos' and (storage.foldername(name))[1] = auth.uid()::text);
 create policy "tm_docs_delete" on storage.objects for delete to authenticated
   using (bucket_id = 'tm-documentos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ---------------------------------------------------------------------
+-- Añadido 2026-10-30: checklist (tareas + maleta) y orden manual de actividades.
+-- La app funciona sin esto: hasta ejecutarlo, Checklist explica cómo activarla.
+-- ---------------------------------------------------------------------
+create table if not exists public.tm_checklist_items (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  trip_id uuid not null references public.tm_trips(id) on delete cascade,
+  list text not null check (list in ('tareas','maleta')),
+  title text not null,
+  group_name text,
+  status text not null default 'pendiente' check (status in ('pendiente','en_curso','hecho')),
+  priority text not null default 'media' check (priority in ('alta','media','baja')),
+  due_date date,
+  bag text check (bag in ('personal','cabina','facturado','adicional')),
+  quantity integer check (quantity > 0),
+  weight_kg double precision check (weight_kg >= 0),
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.tm_activities add column if not exists position integer not null default 0;
+
+alter table public.tm_checklist_items enable row level security;
+drop trigger if exists tm_checklist_items_touch on public.tm_checklist_items;
+create trigger tm_checklist_items_touch before update on public.tm_checklist_items
+  for each row execute function public.tm_touch_updated_at();
+create index if not exists tm_checklist_items_user_idx on public.tm_checklist_items (user_id);
+create index if not exists tm_checklist_items_trip_idx on public.tm_checklist_items (trip_id);
+drop policy if exists "tm_own_rows" on public.tm_checklist_items;
+create policy "tm_own_rows" on public.tm_checklist_items for all to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid()
+              and exists (select 1 from public.tm_trips tr where tr.id = trip_id and tr.user_id = auth.uid()));
+
+-- Para que la API vea los cambios sin esperar.
+notify pgrst, 'reload schema';

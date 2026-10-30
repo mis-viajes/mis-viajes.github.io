@@ -7,11 +7,11 @@ import { BOOKING_STATUS, TRANSPORT_TYPE } from "@/lib/labels";
 import { KindIcon, type Kind } from "./kind-icon";
 import { Badge, BOOKING_TONE, cx } from "./ui";
 
-type Event = { key: string; kind: Kind; time: string | null; title: string; detail?: string; status?: string; href: string };
+export type TimelineEvent = { key: string; kind: Kind; time: string | null; title: string; detail?: string; status?: string; href: string };
 
-function eventsOf(day: DayPlan, tripId: string, base: string): Event[] {
+export function eventsOf(day: DayPlan, tripId: string, base: string): TimelineEvent[] {
   const t = (p: string) => `/trips/${tripId}/${p}`;
-  const list: Event[] = [
+  const list: TimelineEvent[] = [
     ...day.checkOuts.map((l) => ({ key: `out-${l.id}`, kind: "checkout" as const, time: l.checkOutTime, title: `Check-out · ${l.name}`, href: t("lodging") })),
     ...day.flights.map((f) => {
       const dep = localToInstant(f.departureLocal, f.departureTz);
@@ -62,7 +62,7 @@ function eventsOf(day: DayPlan, tripId: string, base: string): Event[] {
   return list.sort((a, b) => (a.time ?? "99").localeCompare(b.time ?? "99"));
 }
 
-type Block = { kind: "day"; day: DayPlan; events: Event[] } | { kind: "quiet"; days: DayPlan[] };
+type Block = { kind: "day"; day: DayPlan; events: TimelineEvent[] } | { kind: "quiet"; days: DayPlan[] };
 
 /** Agrupa días seguidos sin planes en un solo bloque para que la línea no se alargue de más. */
 function blocks(days: DayPlan[], tripId: string, base: string): Block[] {

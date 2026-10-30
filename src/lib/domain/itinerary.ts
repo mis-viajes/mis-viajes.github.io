@@ -20,6 +20,11 @@ export type DayPlan = {
 
 const active = (s: string) => s !== "cancelado";
 
+/** Por hora; las actividades sin hora van al final, en el orden manual del usuario. */
+export function compareActivities(x: Activity, y: Activity): number {
+  return (x.startTime ?? "99").localeCompare(y.startTime ?? "99") || (x.position ?? 0) - (y.position ?? 0);
+}
+
 /** Responde "dónde estaré, cómo llegaré, dónde dormiré y qué haré" para cada día del viaje. */
 export function buildItinerary(b: TripBundle): DayPlan[] {
   const days = dateRange(b.trip.startDate, b.trip.endDate);
@@ -42,7 +47,7 @@ export function buildItinerary(b: TripBundle): DayPlan[] {
         .sort((x, y) => (x.departureLocal ?? "").localeCompare(y.departureLocal ?? "")),
       activities: b.activities
         .filter((a) => a.date === date)
-        .sort((x, y) => (x.startTime ?? "99").localeCompare(y.startTime ?? "99")),
+        .sort(compareActivities),
       restaurants: b.restaurants.filter((r) => datePart(r.reservedAt) === date),
     };
   });

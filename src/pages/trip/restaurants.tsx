@@ -1,14 +1,14 @@
 import { useSearchParams } from "react-router";
 import { useTrip } from "@/pages/trip/context";
 import { ExternalLink, MapPin, Star, Utensils } from "lucide-react";
-import { Link } from "react-router";
 import { deleteEntity, saveEntity } from "@/lib/api";
 import { DeleteButton } from "@/components/delete-button";
 import { RecordDialog } from "@/components/record-dialog";
-import { Badge, Card, cx, EmptyState, PageHeader, type Tone } from "@/components/ui";
+import { Badge, Card, EmptyState, FilterChip, PageHeader, type Tone } from "@/components/ui";
 import { formatDateTimeLocal } from "@/lib/domain/dates";
 import { RESTAURANT_STATUS } from "@/lib/labels";
 import { destinationName, formContext } from "@/lib/trip-helpers";
+import type { Restaurant } from "@/lib/types";
 
 const STATUS_TONE: Record<string, Tone> = { por_visitar: "neutral", recomendado: "info", reservado: "warning", visitado: "success" };
 
@@ -17,7 +17,17 @@ export default function RestaurantsPage() {
   const [searchParams] = useSearchParams();
   const lista = searchParams.get("lista") ?? undefined;
   const ctx = formContext(b);
-  const list = b.restaurants.filter((r) => !lista || r.listStatus === lista);
+  const ciudad = searchParams.get("ciudad") ?? undefined;
+  const cocina = searchParams.get("cocina") ?? undefined;
+  const cityOf = (r: Restaurant) => r.city ?? destinationName(b, r.destinationId) ?? null;
+  const list = b.restaurants.filter((r) => (!lista || r.listStatus === lista) && (!ciudad || cityOf(r) === ciudad) && (!cocina || r.cuisine === cocina));
+  const unique = (values: (string | null)[]) => [...new Set(values.filter((v): v is string => Boolean(v)))].sort((x, y) => x.localeCompare(y, "es"));
+  const cities = unique(b.restaurants.map(cityOf));
+  const cuisines = unique(b.restaurants.map((r) => r.cuisine));
+  const href = (q: Record<string, string | undefined>) => {
+    const p = new URLSearchParams(Object.entries({ lista, ciudad, cocina, ...q }).filter(([, v]) => v) as [string, string][]);
+    return `/trips/${tripId}/restaurants${p.size ? `?${p}` : ""}`;
+  };
 
   return (
     <div>
@@ -32,15 +42,28 @@ export default function RestaurantsPage() {
             const count = value ? b.restaurants.filter((r) => r.listStatus === value).length : b.restaurants.length;
             const active = (lista ?? "") === value;
             return (
-              <Link
-                key={value}
-                to={`/trips/${tripId}/restaurants${value ? `?lista=${value}` : ""}`}
-                className={cx("rounded-full border px-3 py-1", active ? "border-accent bg-accent-soft text-accent" : "border-line text-muted hover:text-ink")}
-              >
+              <FilterChip key={value} href={href({ lista: value || undefined })} active={active}>
                 {label} ({count})
-              </Link>
+              </FilterChip>
             );
           })}
+        </div>
+      )}
+      {(cities.length > 1 || cuisines.length > 1) && (
+        <div className="mb-4 flex flex-wrap gap-2 text-sm">
+          {cities.length > 1 && (
+            <>
+              <FilterChip href={href({ ciudad: undefined })} active={!ciudad}>Todas las ciudades</FilterChip>
+              {cities.map((c) => <FilterChip key={c} href={href({ ciudad: c })} active={ciudad === c}>{c}</FilterChip>)}
+            </>
+          )}
+          {cities.length > 1 && cuisines.length > 1 && <span className="mx-1 self-center text-line">|</span>}
+          {cuisines.length > 1 && (
+            <>
+              <FilterChip href={href({ cocina: undefined })} active={!cocina}>Toda la gastronomía</FilterChip>
+              {cuisines.map((c) => <FilterChip key={c} href={href({ cocina: c })} active={cocina === c}>{c}</FilterChip>)}
+            </>
+          )}
         </div>
       )}
       {b.restaurants.length === 0 ? (
@@ -48,7 +71,7 @@ export default function RestaurantsPage() {
           Guarda los restaurantes que quieres probar y marca cuáles reservaste o visitaste.
         </EmptyState>
       ) : list.length === 0 ? (
-        <Card className="p-4 text-sm text-muted">No hay restaurantes en esta lista.</Card>
+        <Card className="p-4 text-sm text-muted">Ningún restaurante coincide con el filtro.</Card>
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {list.map((r) => (

@@ -1,8 +1,9 @@
-import { selectAll, selectOne } from "./db";
+import { isMissingSchema, selectAll, selectOne } from "./db";
 import type { TripBundle } from "./domain/types";
 import type {
   Activity,
   BaggageAllowance,
+  ChecklistItem,
   Destination,
   DocumentRow,
   ExchangeRate,
@@ -28,10 +29,12 @@ type Rows = {
   restaurants: Restaurant[];
   expenses: Expense[];
   documents: DocumentRow[];
+  /** null: la tabla aún no existe en Supabase. */
+  checklist: ChecklistItem[] | null;
 };
 
 async function loadRows(filter: Record<string, string>): Promise<Rows> {
-  const [travelers, destinations, flights, baggage, lodgings, transports, activities, restaurants, expenses, documents] = await Promise.all([
+  const [travelers, destinations, flights, baggage, lodgings, transports, activities, restaurants, expenses, documents, checklist] = await Promise.all([
     selectAll<Traveler>("traveler", filter, [["createdAt", true]]),
     selectAll<Destination>("destination", filter, [["position", true], ["arrivalDate", true]]),
     selectAll<Flight>("flight", filter, [["departureLocal", true]]),
@@ -42,8 +45,12 @@ async function loadRows(filter: Record<string, string>): Promise<Rows> {
     selectAll<Restaurant>("restaurant", filter, [["name", true]]),
     selectAll<Expense>("expense", filter, [["date", false], ["createdAt", false]]),
     selectAll<DocumentRow>("document", filter, [["createdAt", false]]),
+    selectAll<ChecklistItem>("checklist", filter, [["createdAt", true]]).catch((e) => {
+      if (isMissingSchema(e)) return null;
+      throw e;
+    }),
   ]);
-  return { travelers, destinations, flights, baggage, lodgings, transports, activities, restaurants, expenses, documents };
+  return { travelers, destinations, flights, baggage, lodgings, transports, activities, restaurants, expenses, documents, checklist };
 }
 
 function assemble(trip: Trip, r: Rows): TripBundle {
@@ -62,6 +69,8 @@ function assemble(trip: Trip, r: Rows): TripBundle {
     restaurants: mine(r.restaurants),
     expenses: mine(r.expenses).map((e) => ({ ...e, shares: Array.isArray(e.shares) ? e.shares : [] })),
     documents: mine(r.documents),
+    checklist: mine(r.checklist ?? []),
+    checklistAvailable: r.checklist !== null,
   };
 }
 

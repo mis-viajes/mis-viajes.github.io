@@ -1,14 +1,16 @@
 
-import { LayoutDashboard, Luggage, Menu, Plane, Settings, X } from "lucide-react";
-import { Link } from "react-router";
-import { useLocation } from "react-router";
+import { Download, LayoutDashboard, Luggage, Menu, Plane, Search, Settings, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { promptInstall, useCanInstall } from "@/lib/install";
+import { OfflineNotice } from "./offline-notice";
 import { ThemeToggle } from "./theme-toggle";
 import { cx } from "./ui";
 
 const NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/trips", label: "Mis viajes", icon: Luggage, exact: true },
+  { href: "/buscar", label: "Buscar", icon: Search, exact: true },
   { href: "/ajustes", label: "Ajustes", icon: Settings, exact: true },
 ];
 
@@ -38,6 +40,20 @@ export function AppShell({ children, trips }: { children: ReactNode; trips: Reac
   // Cierra el menú móvil al navegar.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setOpen(false), [pathname]);
+  const canInstall = useCanInstall();
+  const navigate = useNavigate();
+
+  // Ctrl+K o Cmd+K abre la búsqueda desde cualquier pantalla.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        navigate("/buscar");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navigate]);
 
   const sidebar = (
     <nav className="flex h-full flex-col gap-1 p-3">
@@ -51,6 +67,11 @@ export function AppShell({ children, trips }: { children: ReactNode; trips: Reac
       <p className="mt-5 px-2.5 text-xs font-medium uppercase tracking-wide text-muted">Viajes</p>
       <div className="min-h-0 flex-1 overflow-y-auto">{trips}</div>
       <div className="border-t border-line pt-2">
+        {canInstall && (
+          <button type="button" onClick={promptInstall} className="mb-1 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-accent hover:bg-accent-soft">
+            <Download size={17} /> Instalar app
+          </button>
+        )}
         <ThemeToggle />
       </div>
     </nav>
@@ -59,7 +80,7 @@ export function AppShell({ children, trips }: { children: ReactNode; trips: Reac
   return (
     <div className="flex min-h-dvh">
 
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-line bg-surface lg:block">{sidebar}</aside>
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-line bg-surface lg:block print:hidden">{sidebar}</aside>
       {open && (
         <div className="fixed inset-0 z-[1100] lg:hidden">
           <button type="button" className="absolute inset-0 bg-black/40" aria-label="Cerrar menú" onClick={() => setOpen(false)} />
@@ -72,15 +93,19 @@ export function AppShell({ children, trips }: { children: ReactNode; trips: Reac
         </div>
       )}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-[1000] flex items-center gap-2 border-b border-line bg-surface/90 px-4 py-2.5 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-[1000] flex items-center gap-2 border-b border-line bg-surface/90 px-4 py-2.5 backdrop-blur lg:hidden print:hidden">
           <button type="button" onClick={() => setOpen(true)} className="rounded-md p-1.5 text-muted hover:bg-surface-2" aria-label="Abrir menú">
             <Menu size={20} />
           </button>
-          <Link to="/" className="font-semibold">
+          <Link to="/" className="flex-1 font-semibold">
             Travel Manager
           </Link>
+          <Link to="/buscar" className="rounded-md p-1.5 text-muted hover:bg-surface-2" aria-label="Buscar">
+            <Search size={20} />
+          </Link>
         </header>
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6 sm:py-7">{children}</main>
+        <OfflineNotice />
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6 sm:py-7 print:max-w-none print:p-0">{children}</main>
       </div>
     </div>
   );

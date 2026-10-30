@@ -1,3 +1,4 @@
+import { packingCheck } from "./checklist";
 import { dateRange, daysUntil, formatDuration, localToInstant, minutesBetween } from "./dates";
 import { overnightTransitNights } from "./itinerary";
 import { findConnections, flightSegment, transportSegment } from "./segments";
@@ -10,7 +11,7 @@ export type Alert = {
   level: AlertLevel;
   title: string;
   detail?: string;
-  section: "flights" | "lodging" | "transport" | "activities" | "finance" | "overview";
+  section: "flights" | "lodging" | "transport" | "activities" | "finance" | "overview" | "checklist";
 };
 
 const ACTIVE = (s: string) => s !== "cancelado";
@@ -142,6 +143,36 @@ export function computeAlerts(b: TripBundle, now: Date, today: string): Alert[] 
       detail: `${x.date} · ${x.startTime}–${x.endTime ?? "?"} / ${y.startTime}–${y.endTime ?? "?"}`,
       section: "activities",
     });
+  }
+
+  // Tareas vencidas o que vencen en 3 días.
+  if (!finished) {
+    const open = b.checklist.filter((c) => c.list === "tareas" && c.status !== "hecho" && c.dueDate);
+    const overdue = open.filter((c) => c.dueDate! < today);
+    const soon = open.filter((c) => c.dueDate! >= today && daysUntil(c.dueDate!, today) <= 3);
+    const names = (list: typeof open) => list.slice(0, 3).map((c) => c.title).join(", ") + (list.length > 3 ? "…" : "");
+    if (overdue.length > 0) {
+      alerts.push({
+        id: "tasks-overdue",
+        level: "danger",
+        title: `${overdue.length} ${overdue.length === 1 ? "tarea vencida" : "tareas vencidas"}`,
+        detail: names(overdue),
+        section: "checklist",
+      });
+    }
+    if (soon.length > 0) {
+      alerts.push({
+        id: "tasks-soon",
+        level: "warning",
+        title: `${soon.length} ${soon.length === 1 ? "tarea vence" : "tareas vencen"} en los próximos 3 días`,
+        detail: names(soon),
+        section: "checklist",
+      });
+    }
+    // Maleta que no cumple las condiciones de los vuelos.
+    for (const r of packingCheck(b.checklist, b.flights).filter((r) => r.problem)) {
+      alerts.push({ id: `packing-${r.bag}`, level: "warning", title: r.problem!, section: "checklist" });
+    }
   }
 
   // Pagos pendientes.

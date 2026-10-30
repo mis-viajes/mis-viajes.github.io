@@ -2,6 +2,8 @@ import {
   ACTIVITY_CATEGORY,
   BAGGAGE_CATEGORY,
   BOOKING_STATUS,
+  CHECKLIST_PRIORITY,
+  CHECKLIST_STATUS,
   FLIGHT_DIRECTION,
   LODGING_TYPE,
   RESTAURANT_STATUS,
@@ -67,7 +69,9 @@ export type EntityName =
   | "transport"
   | "activity"
   | "restaurant"
-  | "exchangeRate";
+  | "exchangeRate"
+  | "task"
+  | "packingItem";
 
 export type EntityDef = {
   label: string;
@@ -329,6 +333,29 @@ export const ENTITIES: Record<EntityName, EntityDef> = {
       { name: "openingHours", label: "Horarios", type: "text", advanced: true },
       { name: "mapsUrl", label: "Enlace a Google Maps", type: "url", wide: true, advanced: true },
       { name: "website", label: "Sitio web", type: "url", wide: true, advanced: true },
+      notesField,
+    ],
+  },
+  task: {
+    label: "tarea",
+    fields: [
+      { name: "title", label: "Tarea", type: "text", required: true, wide: true },
+      { name: "dueDate", label: "Fecha límite", type: "date" },
+      { name: "priority", label: "Prioridad", type: "select", options: options(CHECKLIST_PRIORITY), defaultValue: "media" },
+      { name: "status", label: "Estado", type: "select", options: options(CHECKLIST_STATUS), defaultValue: "pendiente" },
+      { name: "groupName", label: "Lista", type: "text", placeholder: "Documentos, Reservas…" },
+      notesField,
+    ],
+  },
+  packingItem: {
+    label: "objeto",
+    fields: [
+      { name: "title", label: "Objeto", type: "text", required: true, wide: true },
+      { name: "bag", label: "Va en", type: "select", options: options(BAGGAGE_CATEGORY) },
+      { name: "groupName", label: "Categoría", type: "text", placeholder: "Ropa, Aseo, Electrónica…" },
+      { name: "quantity", label: "Cantidad", type: "integer", placeholder: "1" },
+      { name: "weightKg", label: "Peso por unidad (kg)", type: "number", help: "Opcional. Con el peso se comprueba el límite de tus vuelos." },
+      { name: "status", label: "Estado", type: "select", options: options(CHECKLIST_STATUS), defaultValue: "pendiente" },
       notesField,
     ],
   },

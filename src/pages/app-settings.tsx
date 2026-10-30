@@ -1,10 +1,11 @@
-import { Download, KeyRound, LogOut, Upload } from "lucide-react";
+import { Download, KeyRound, LogOut, MonitorSmartphone, Upload } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/auth";
 import { buttonStyles, Card, PageHeader, SectionTitle } from "@/components/ui";
 import { fetchAllBundles, fetchExchangeRates } from "@/lib/data";
 import { getApiKey, setApiKey } from "@/lib/import/api-key";
 import { importBackup } from "@/lib/import-json";
+import { isInstalled, isIOS, promptInstall, useCanInstall } from "@/lib/install";
 
 export default function AppSettings() {
   const { email, signOut } = useAuth();
@@ -12,6 +13,7 @@ export default function AppSettings() {
   const [saved, setSaved] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const hasKey = Boolean(getApiKey());
+  const canInstall = useCanInstall();
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState<{ tone: "ok" | "error" | "info"; text: string } | null>(null);
 
@@ -65,6 +67,29 @@ export default function AppSettings() {
           <button type="button" className={buttonStyles.secondary} onClick={() => signOut()}>
             <LogOut size={16} /> Cerrar sesión
           </button>
+        </Card>
+      </section>
+
+      <section>
+        <SectionTitle title="Instalar la app" subtitle="Ábrela desde el escritorio o la pantalla de inicio, a pantalla completa y también sin conexión." />
+        <Card className="space-y-3 p-4 text-sm">
+          {isInstalled() ? (
+            <p className="flex items-center gap-2 text-success"><MonitorSmartphone size={16} /> Estás usando la app instalada.</p>
+          ) : canInstall ? (
+            <button type="button" className={buttonStyles.primary} onClick={promptInstall}>
+              <Download size={16} /> Instalar en este dispositivo
+            </button>
+          ) : isIOS() ? (
+            <p>En iPhone o iPad: abre esta página en Safari, pulsa <strong>Compartir</strong> y elige <strong>Agregar a inicio</strong>.</p>
+          ) : (
+            <ul className="list-disc space-y-1 pl-5">
+              <li><strong>PC (Chrome o Edge):</strong> pulsa el icono de instalar al final de la barra de direcciones, o el menú ⋮ → Enviar, guardar y compartir → Instalar página como app.</li>
+              <li><strong>Android (Chrome):</strong> menú ⋮ → Instalar aplicación o Agregar a la pantalla principal.</li>
+            </ul>
+          )}
+          <p className="text-xs text-muted">
+            Sin internet podrás consultar lo último que hayas abierto en este dispositivo. Para los archivos, usa «Guardar para usar sin conexión» en Documentos de cada viaje. Editar requiere conexión.
+          </p>
         </Card>
       </section>
 
@@ -127,7 +152,7 @@ export default function AppSettings() {
         <button type="button" className={buttonStyles.secondary} onClick={exportAll} disabled={exporting}>
           <Download size={16} /> {exporting ? "Preparando…" : "Exportar mis datos"}
         </button>
-        <p className="mt-2 text-xs text-muted">Los archivos adjuntos (PDFs, imágenes) quedan en Supabase Storage y no se incluyen.</p>
+        <p className="mt-2 text-xs text-muted">Incluye la checklist. Los archivos adjuntos (PDFs, imágenes) quedan en Supabase Storage y no se incluyen.</p>
       </section>
 
       <section>
