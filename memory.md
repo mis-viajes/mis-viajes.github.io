@@ -11,17 +11,16 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 ## Estado actual
 
-- **Versión estática** (Vite + React + Supabase) lista para publicarse en `https://diego94diaz-oss.github.io/Travel-manager/`.
-- **Verificado en local (2026-10-30):** lint, typecheck, 23 pruebas unitarias, build de producción; `supabase/schema.sql` ejecutado dos veces sin errores en PostgreSQL 16 con stubs de Supabase; prueba de aislamiento RLS entre dos usuarios (`tests/db/rls-test.sql`); E2E con Playwright 34/34 contra ese PostgreSQL a través de `tests/e2e/fake-supabase.mjs`.
-- **No verificado todavía:** el proyecto Supabase real (falta ejecutar el SQL), el inicio de sesión real, Supabase Storage real (en la E2E es una imitación en memoria), la llamada real a Claude (simulada en la E2E) y las teselas/Nominatim (sin salida a esos servicios desde el entorno de pruebas).
-- **Pendiente para que el enlace funcione:**
-  1. Crear el repositorio `diego94diaz-oss/Travel-manager` y subir el código (el entorno de Claude no tenía permiso de escritura en GitHub).
-  2. Activar GitHub Pages con *Source: GitHub Actions*.
-  3. Ejecutar `supabase/schema.sql` en el SQL Editor de Supabase.
+- **Publicada:** https://diego94diaz-oss.github.io/Travel-manager/ (repo `diego94diaz-oss/Travel-manager`, con T mayúscula). Cada push a `main` la compila y la copia a la rama `gh-pages` (workflow verificado: éxito).
+- Comprobado en producción: la página carga sin errores de JavaScript y muestra el inicio de sesión de Supabase.
+- **Falta (solo lo puede hacer el usuario):** ejecutar `supabase/schema.sql` en el SQL Editor de Supabase. Hasta entonces la API responde `PGRST205` (tabla `tm_trips` no existe) y la app muestra la pantalla «Falta preparar la base de datos». Claude no tiene acceso de administración a Supabase (solo la clave publicable).
+- **Verificado en local:** lint, typecheck, 23 tests unitarios, build; esquema SQL idempotente y RLS probados en PostgreSQL 16; E2E 34/34 contra ese PostgreSQL vía `tests/e2e/fake-supabase.mjs`; carga desde subcarpeta `/Travel-manager/`.
+- **Sin verificar aún con datos reales:** login real, Supabase Storage real, llamada real a Claude (simulada en la E2E).
+- GitHub Pages se activó con la rama `gh-pages` porque el entorno de Claude no puede cambiar los ajustes de Pages por API.
 
 ## Próximos pasos
 
-1. Completar los tres pasos de publicación y probar la app con la cuenta real.
+1. Que el usuario ejecute `supabase/schema.sql`; después, probar con la cuenta real (crear viaje, subir documento, importar).
 2. Añadir Travel Manager a la barra «Mis apps» de Mi Día (`js/config.js` → `APPS` y `LINKS`) y, opcionalmente, una tarjeta con el próximo viaje.
 3. Checklist de maleta y tareas por viaje.
 4. Calendario mensual/semanal; exportar itinerario a PDF; importar desde JSON; búsqueda global.
@@ -47,7 +46,7 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 | # | Pregunta | Estado |
 |---|---|---|
-| 1 | ¿Quién crea el repo `travel-manager` y da permiso de escritura a Claude? | Abierta |
+| 1 | Repositorio | Resuelta: el usuario creó `Travel-manager`; Claude tiene permiso de escritura en esta sesión. |
 | 2 | ¿Añadir Travel Manager a Mi Día? | Abierta (propuesto) |
 | 3 | ¿Clave de API de Anthropic para la importación? | Abierta |
 | 4 | ¿Hay viajes reales para cargar? | Abierta |
