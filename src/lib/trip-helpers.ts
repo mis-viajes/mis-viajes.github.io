@@ -43,3 +43,15 @@ export function expenseFormBase(b: TripBundle, rates: Record<string, { rate: num
 export function hasExpense(b: TripBundle, sourceType: string, sourceId: string): boolean {
   return b.expenses.some((e) => e.sourceType === sourceType && e.sourceId === sourceId);
 }
+
+/** Ciudad que se usa para buscar la foto de portada del viaje (la primera con nombre). */
+export function tripPhotoQuery(b: TripBundle): string | null {
+  const d = b.destinations[0];
+  if (d) return d.country ? `${d.city} ${d.country}` : d.city;
+  const l = b.lodgings.find((x) => x.city);
+  return l?.city ?? null;
+}
+
+export function destinationPhotoQuery(d: { city: string; country: string | null }): string {
+  return d.country ? `${d.city} ${d.country}` : d.city;
+}

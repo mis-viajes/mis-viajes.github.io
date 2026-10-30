@@ -4,29 +4,61 @@ import { formatDate, tripDays, tripPhase } from "@/lib/domain/dates";
 import { formatMoney } from "@/lib/domain/money";
 import type { TripBundle } from "@/lib/domain/types";
 import { TRIP_PHASE } from "@/lib/labels";
-import { tripCities, tripCountries } from "@/lib/trip-helpers";
+import { tripCities, tripCountries, tripPhotoQuery } from "@/lib/trip-helpers";
+import { useCityPhoto } from "@/lib/photos";
 import { DeleteButton } from "./delete-button";
 import { Badge, Card, type Tone } from "./ui";
 
 const PHASE_TONE: Record<string, Tone> = { futuro: "accent", en_curso: "success", finalizado: "neutral", cancelado: "danger" };
 
-export function TripCover({ name, image, className }: { name: string; image: string | null; className?: string }) {
-  if (image) {
-    return <img src={image} alt="" className={`object-cover ${className ?? ""}`} />;
-  }
-  // Sin imagen: degradado determinista a partir del nombre.
+/**
+ * Portada: la imagen del viaje si la hay; si no, una foto de la ciudad principal
+ * (Wikimedia Commons) y, mientras carga o si falla, un degradado de color.
+ */
+export function TripCover({
+  name,
+  image,
+  query,
+  className,
+  credit = false,
+}: {
+  name: string;
+  image: string | null;
+  query?: string | null;
+  className?: string;
+  credit?: boolean;
+}) {
+  const { photo } = useCityPhoto(image ? null : query);
+  const src = image ?? photo?.url ?? null;
+  // Degradado determinista a partir del nombre (fondo mientras carga la foto).
   const hue = [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
   return (
     <div
-      className={`grid place-items-center text-2xl font-semibold text-white/90 ${className ?? ""}`}
+      className={`relative grid place-items-center overflow-hidden text-2xl font-semibold text-white/90 ${className ?? ""}`}
       style={{ background: `linear-gradient(135deg, hsl(${hue} 55% 42%), hsl(${(hue + 40) % 360} 60% 32%))` }}
-      aria-hidden
     >
-      {name
-        .split(/\s+/)
-        .slice(0, 2)
-        .map((w) => w[0]?.toUpperCase())
-        .join("")}
+      {src ? (
+        <img src={src} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <span aria-hidden>
+          {name
+            .split(/\s+/)
+            .slice(0, 2)
+            .map((w) => w[0]?.toUpperCase())
+            .join("")}
+        </span>
+      )}
+      {credit && photo && !image && (
+        <a
+          href={photo.pageUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="absolute bottom-1 right-2 z-10 text-[10px] font-normal text-white/70 hover:text-white"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Foto: Wikimedia Commons
+        </a>
+      )}
     </div>
   );
 }
@@ -41,7 +73,7 @@ export function TripCard({ bundle, today, onDelete }: { bundle: TripBundle; toda
     <div className="relative">
       <Link to={`/trips/${trip.id}`} className="group block">
         <Card className="overflow-hidden transition group-hover:shadow-md group-hover:border-accent/40">
-          <TripCover name={trip.name} image={trip.coverImage} className="h-28 w-full" />
+          <TripCover name={trip.name} image={trip.coverImage} query={tripPhotoQuery(bundle)} className="h-36 w-full" />
           <div className="space-y-2 p-4">
             <div className="flex items-start justify-between gap-2">
               <h3 className="font-semibold leading-tight">{trip.name}</h3>
@@ -80,7 +112,7 @@ export function TripCard({ bundle, today, onDelete }: { bundle: TripBundle; toda
           itemName={`el viaje «${trip.name}»`}
           warning="Se borrarán todas sus reservas, gastos y documentos."
           action={onDelete}
-          className="absolute right-2 top-2 bg-surface/90 text-ink shadow-sm backdrop-blur hover:bg-surface"
+          className="absolute right-2 top-2 !bg-surface/90 !text-ink shadow-sm backdrop-blur hover:!bg-surface"
         />
       )}
     </div>

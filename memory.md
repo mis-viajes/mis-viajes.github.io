@@ -20,6 +20,9 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 - **Importar viajes desde JSON** (Ajustes) añadido y probado en local: el viaje «Europa 2026» preparado a partir de 4 PDFs del usuario se importa con 7 vuelos, 3 gastos y 4 documentos sin errores. El archivo se entregó al usuario (no está en el repo: contiene datos personales).
 
+- **Rediseño visual (2026-10-30):** fotos de ciudades, portada grande con cuenta atrás, tarjetas de destino, mapa de ruta y línea de tiempo en el resumen, tarjetas de embarque, gráficos de gastos, botones para eliminar viajes desde la lista y la portada. E2E 34/34.
+- Las fotos de Wikimedia a veces fallan desde el entorno de Claude (error 429 por límite de peticiones del proxy compartido); en el navegador del usuario deberían cargar. Si fallan, se muestra un degradado.
+
 ## Próximos pasos
 
 1. Que el usuario ejecute `supabase/schema.sql`; después, probar con la cuenta real (crear viaje, subir documento, importar).

@@ -3,7 +3,7 @@ import type { Activity, Flight, Lodging, Trip } from "../../types";
 import { computeAlerts, overlappingActivities } from "../alerts";
 import { localToInstant, minutesBetween, nightsBetween, tripDays, tripPhase } from "../dates";
 import { estimateMinutes, haversineKm } from "../geo";
-import { buildItinerary, suggestDestination } from "../itinerary";
+import { buildItinerary, isInDestination, suggestDestination } from "../itinerary";
 import { findConnections, flightSegment } from "../segments";
 import type { TripBundle } from "../types";
 
@@ -112,6 +112,15 @@ describe("itinerario", () => {
     const days = buildItinerary(bundle({ lodgings: [l] }));
     expect(days.map((d) => d.lodging?.name ?? null)).toEqual(["Hotel Centro", "Hotel Centro", null, null]);
     expect(days[2].checkOuts).toHaveLength(1);
+  });
+
+  it("un destino con una sola fecha conocida solo cuenta ese día", () => {
+    const d = (arrivalDate: string | null, departureDate: string | null) => ({ arrivalDate, departureDate });
+    expect(isInDestination(d("2026-12-03", "2026-12-07"), "2026-12-05")).toBe(true);
+    expect(isInDestination(d(null, "2026-11-18"), "2026-11-13")).toBe(false);
+    expect(isInDestination(d(null, "2026-11-18"), "2026-11-18")).toBe(true);
+    expect(isInDestination(d("2026-11-14", null), "2026-11-20")).toBe(false);
+    expect(isInDestination(d(null, null), "2026-11-20")).toBe(false);
   });
 
   it("sugiere destino por ciudad, sin acentos ni mayúsculas", () => {

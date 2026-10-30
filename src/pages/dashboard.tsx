@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { CalendarClock, Hotel, Plane, Plus, Ticket, TrainFront } from "lucide-react";
+import { CalendarClock, Plane, Plus } from "lucide-react";
+import { KindIcon } from "@/components/kind-icon";
 import { Link } from "react-router";
 import { AlertList } from "@/components/alert-list";
 import { TripCard, TripCover } from "@/components/trip-card";
@@ -11,7 +12,7 @@ import { datePart, daysUntil, formatDate, formatDateTimeLocal, todayISO, tripDay
 import { summarizeFinances } from "@/lib/domain/finance";
 import { formatMoney } from "@/lib/domain/money";
 import type { TripBundle } from "@/lib/domain/types";
-import { tripCities } from "@/lib/trip-helpers";
+import { tripCities, tripPhotoQuery } from "@/lib/trip-helpers";
 
 type Upcoming = { date: string; sort: string; label: string; detail: string; tripId: string; tripName: string; href: string; kind: "flight" | "lodging" | "transport" | "activity" };
 
@@ -43,7 +44,6 @@ function upcomingEvents(bundles: TripBundle[], today: string, horizonDays = 30):
   return out.sort((a, b) => a.sort.localeCompare(b.sort)).slice(0, 10);
 }
 
-const KIND_ICON = { flight: Plane, lodging: Hotel, transport: TrainFront, activity: Ticket };
 
 function sumByCurrency(entries: [string, number][]): string {
   const map = new Map<string, number>();
@@ -119,10 +119,9 @@ export default function DashboardPage() {
           ) : (
             <Card className="divide-y divide-line">
               {upcoming.map((u, i) => {
-                const Icon = KIND_ICON[u.kind];
                 return (
                   <Link key={i} to={u.href} className="flex items-center gap-3 px-4 py-3 hover:bg-surface-2">
-                    <Icon size={17} className="shrink-0 text-accent" />
+                    <KindIcon kind={u.kind} size="sm" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium">{u.label}</span>
                       <span className="block truncate text-xs text-muted">
@@ -175,8 +174,8 @@ function NextTrip({ bundle, today }: { bundle: TripBundle; today: string }) {
   return (
     <Link to={`/trips/${trip.id}`} className="block">
       <Card className="relative overflow-hidden">
-        <TripCover name={trip.name} image={trip.coverImage} className="absolute inset-0 h-full w-full opacity-90" />
-        <div className="relative bg-gradient-to-r from-black/70 via-black/45 to-black/10 p-6 text-white sm:p-8">
+        <TripCover name={trip.name} image={trip.coverImage} query={tripPhotoQuery(bundle)} className="absolute inset-0 h-full w-full" />
+        <div className="relative min-h-64 bg-gradient-to-t from-black/80 via-black/40 to-black/10 p-6 text-white sm:p-8">
           <p className="flex items-center gap-1.5 text-sm text-white/80">
             <CalendarClock size={15} /> {phase === "en_curso" ? "Viaje en curso" : "Próximo viaje"}
           </p>

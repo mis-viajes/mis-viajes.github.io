@@ -29,9 +29,7 @@ export function buildItinerary(b: TripBundle): DayPlan[] {
     return {
       date,
       dayNumber: i + 1,
-      destinations: b.destinations.filter(
-        (d) => (!d.arrivalDate || d.arrivalDate <= date) && (!d.departureDate || date <= d.departureDate) && (d.arrivalDate || d.departureDate),
-      ),
+      destinations: b.destinations.filter((d) => isInDestination(d, date)),
       lodging: lodgings.find((l) => l.checkInDate && l.checkOutDate && l.checkInDate <= date && date < l.checkOutDate) ?? null,
       overnightTransit: transitNights.has(date),
       checkIns: lodgings.filter((l) => l.checkInDate === date),
@@ -87,4 +85,13 @@ export function overnightTransitNights(b: Pick<TripBundle, "flights" | "transpor
     for (const d of dateRange(from, to).slice(0, -1)) nights.add(d);
   }
   return nights;
+}
+
+/**
+ * Si el destino tiene llegada y salida, cuenta todo el intervalo. Si solo se conoce una de
+ * las dos fechas, cuenta únicamente ese día: no se supone cuánto tiempo se pasa allí.
+ */
+export function isInDestination(d: Pick<Destination, "arrivalDate" | "departureDate">, date: string): boolean {
+  if (d.arrivalDate && d.departureDate) return d.arrivalDate <= date && date <= d.departureDate;
+  return d.arrivalDate === date || d.departureDate === date;
 }

@@ -1,12 +1,13 @@
 import { useTrip } from "@/pages/trip/context";
-import { Briefcase, Luggage, Plane, PlaneLanding, PlaneTakeoff, ShoppingBag } from "lucide-react";
+import { Briefcase, Luggage, Plane, ShoppingBag } from "lucide-react";
 import { deleteEntity, saveEntity, saveExpense } from "@/lib/api";
 import { DeleteButton } from "@/components/delete-button";
 import { ExpenseDialog } from "@/components/expense-form";
+import { KINDS } from "@/components/kind-icon";
 import { RecordDialog } from "@/components/record-dialog";
 import { Sensitive } from "@/components/sensitive";
 import { Badge, BOOKING_TONE, Card, Detail, EmptyState, PageHeader, SectionTitle } from "@/components/ui";
-import { formatDateTimeLocal, formatDuration } from "@/lib/domain/dates";
+import { datePart, formatDate, formatDuration, timePart } from "@/lib/domain/dates";
 import { formatMoney } from "@/lib/domain/money";
 import { findConnections, flightSegment, segmentDuration, transportSegment } from "@/lib/domain/segments";
 import type { FlightWithBaggage } from "@/lib/domain/types";
@@ -49,14 +50,15 @@ export default function FlightsPage() {
                       ↳ Conexión de {formatDuration(conn.gapMinutes)} {conn.tight && `(se recomiendan ${formatDuration(conn.minimum)})`}
                     </p>
                   )}
-                  <Card className="p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
+                  <Card className="overflow-hidden">
+                    {/* Cabecera de la tarjeta de embarque */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-white" style={{ background: KINDS.flight.color }}>
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge tone="accent">{FLIGHT_DIRECTION[f.direction]}</Badge>
+                        <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">{FLIGHT_DIRECTION[f.direction]}</span>
                         <span className="font-semibold">{[f.airline, f.flightNumber].filter(Boolean).join(" ") || "Vuelo"}</span>
                         <Badge tone={BOOKING_TONE[f.bookingStatus]}>{BOOKING_STATUS[f.bookingStatus]}</Badge>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 [&_button]:text-white [&_button:hover]:bg-white/15 [&_button:hover]:text-white">
                         {f.priceMinor !== null && !hasExpense(b, "flight", f.id) && (
                           <ExpenseDialog
                             mode="fromBooking"
@@ -78,35 +80,53 @@ export default function FlightsPage() {
                       </div>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                      <div>
-                        <p className="flex items-center gap-1.5 text-2xl font-semibold tracking-tight">
-                          <PlaneTakeoff size={18} className="text-muted" /> {f.originCode ?? "—"}
-                        </p>
-                        <p className="truncate text-xs text-muted">{f.originName}</p>
-                        <p className="text-sm">{formatDateTimeLocal(f.departureLocal)}</p>
-                        {f.terminalOrigin && <p className="text-xs text-muted">Terminal {f.terminalOrigin}</p>}
+                    <div className="flex flex-col sm:flex-row">
+                      {/* Trayecto */}
+                      <div className="flex-1 p-4">
+                        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium uppercase tracking-wide text-muted">Salida</p>
+                            <p className="text-4xl font-bold tracking-tight">{f.originCode ?? "—"}</p>
+                            <p className="truncate text-xs text-muted">{f.originName}</p>
+                          </div>
+                          <div className="flex min-w-24 flex-col items-center text-xs text-muted">
+                            <div className="flex w-full items-center gap-1">
+                              <span className="h-px flex-1 border-t-2 border-dashed border-line" />
+                              <Plane size={18} style={{ color: KINDS.flight.color }} />
+                              <span className="h-px flex-1 border-t-2 border-dashed border-line" />
+                            </div>
+                            <span className="mt-1 whitespace-nowrap">{duration !== null ? (seg.exact ? formatDuration(duration) : "Falta zona horaria") : ""}</span>
+                          </div>
+                          <div className="min-w-0 text-right">
+                            <p className="text-xs font-medium uppercase tracking-wide text-muted">Llegada</p>
+                            <p className="text-4xl font-bold tracking-tight">{f.destinationCode ?? "—"}</p>
+                            <p className="truncate text-xs text-muted">{f.destinationName}</p>
+                          </div>
+                        </div>
+                        <div className="mt-3 grid grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-lg font-semibold tabular-nums">{timePart(f.departureLocal) ?? "—"}</p>
+                            <p className="text-xs text-muted capitalize">{formatDate(datePart(f.departureLocal), "EEE d MMM")}</p>
+                            {f.terminalOrigin && <p className="text-xs text-muted">Terminal {f.terminalOrigin}</p>}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-semibold tabular-nums">{timePart(f.arrivalLocal) ?? "—"}</p>
+                            <p className="text-xs text-muted capitalize">{formatDate(datePart(f.arrivalLocal), "EEE d MMM")}</p>
+                            {f.terminalDestination && <p className="text-xs text-muted">Terminal {f.terminalDestination}</p>}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-center text-xs text-muted">
-                        <Plane size={16} className="mx-auto mb-0.5 text-accent" />
-                        {duration !== null ? (seg.exact ? formatDuration(duration) : "Falta zona horaria") : ""}
-                      </div>
-                      <div className="text-right">
-                        <p className="flex items-center justify-end gap-1.5 text-2xl font-semibold tracking-tight">
-                          {f.destinationCode ?? "—"} <PlaneLanding size={18} className="text-muted" />
-                        </p>
-                        <p className="truncate text-xs text-muted">{f.destinationName}</p>
-                        <p className="text-sm">{formatDateTimeLocal(f.arrivalLocal)}</p>
-                        {f.terminalDestination && <p className="text-xs text-muted">Terminal {f.terminalDestination}</p>}
-                      </div>
+                      {/* Talón */}
+                      <dl className="relative grid grid-cols-2 gap-3 border-t-2 border-dashed border-line p-4 sm:w-56 sm:grid-cols-1 sm:border-l-2 sm:border-t-0">
+                        <span className="absolute -left-3 -top-3 hidden h-6 w-6 rounded-full bg-bg sm:block" aria-hidden />
+                        <span className="absolute -bottom-3 -left-3 hidden h-6 w-6 rounded-full bg-bg sm:block" aria-hidden />
+                        <Detail label="Reserva (PNR)">{f.bookingCode && <Sensitive value={f.bookingCode} />}</Detail>
+                        <Detail label="Asientos">{f.seats}</Detail>
+                        <Detail label="Clase">{f.cabinClass}</Detail>
+                        <Detail label="Precio">{f.priceMinor !== null ? formatMoney(f.priceMinor, f.currency ?? base) : null}</Detail>
+                      </dl>
                     </div>
-
-                    <dl className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-3 sm:grid-cols-4">
-                      <Detail label="Reserva (PNR)">{f.bookingCode && <Sensitive value={f.bookingCode} />}</Detail>
-                      <Detail label="Asientos">{f.seats}</Detail>
-                      <Detail label="Clase">{f.cabinClass}</Detail>
-                      <Detail label="Precio">{f.priceMinor !== null ? formatMoney(f.priceMinor, f.currency ?? base) : null}</Detail>
-                    </dl>
+                    <div className="px-4 pb-4">
 
                     <div className="mt-3 rounded-lg bg-surface-2 p-3">
                       <div className="mb-2 flex items-center justify-between gap-2">
@@ -158,6 +178,7 @@ export default function FlightsPage() {
                       )}
                     </div>
                     {f.notes && <p className="mt-2 text-sm text-muted">{f.notes}</p>}
+                    </div>
                   </Card>
                 </div>
               );

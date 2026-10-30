@@ -6,6 +6,7 @@ import { Link } from "react-router";
 import { deleteEntity, deleteExpense, saveEntity, saveExpense, setExpenseStatus } from "@/lib/api";
 import { DeleteButton } from "@/components/delete-button";
 import { ExpenseDialog } from "@/components/expense-form";
+import { CategoryBar, PersonBars } from "@/components/finance-charts";
 import { MarkPaidButton } from "@/components/mark-paid";
 import { RecordDialog } from "@/components/record-dialog";
 import { Badge, buttonStyles, Card, cx, EmptyState, EXPENSE_TONE, PageHeader, SectionTitle } from "@/components/ui";
@@ -150,12 +151,8 @@ export default function FinancePage() {
 
       {b.expenses.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-2">
-          <BreakdownCard
-            title="Por categoría"
-            rows={Object.entries(f.byCategory).map(([k, v]) => ({ label: EXPENSE_CATEGORY[k] ?? k, bucket: v }))}
-            total={f.totals.projected}
-            money={money}
-          />
+          <CategoryBar byCategory={f.byCategory} money={money} />
+          {b.travelers.length > 0 && <PersonBars balances={f.balances} money={money} />}
           <BreakdownCard
             title="Por ciudad"
             rows={Object.entries(f.byDestination).map(([k, v]) => ({ label: destinationName(b, k) ?? "Sin ciudad", bucket: v }))}

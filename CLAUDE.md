@@ -161,6 +161,7 @@ Duración del viaje · noches de alojamiento · días entre destinos · totales 
 |---|---|---|
 | **Supabase** (proyecto compartido) | Datos, sesión y archivos. | La clave publicable es pública por diseño; la seguridad la dan RLS y las políticas de Storage. |
 | **API de Claude (Anthropic)** | Extraer datos de PDFs, capturas y textos (`src/lib/import/extract.ts`). | Clave del usuario; costo por uso; el documento sale del navegador hacia Anthropic. `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`). Nada se guarda sin revisión. |
+| **Wikimedia Commons** | Fotos de ciudades para portadas y destinos (`src/lib/photos.ts`). | Búsqueda pública sin clave; una vez por ciudad, con caché en el navegador; se enlaza la página de la foto como atribución. Si falla, degradado de color. |
 | **OpenStreetMap / Nominatim** | Teselas del mapa y búsqueda de coordenadas. | Atribución; Nominatim solo bajo acción del usuario, 1 petición cada 1,1 s, sin autocompletado. |
 | **Google Maps URLs** | Botones «ver ruta real». | Enlaces públicos sin API key. Los tiempos de la app son estimaciones y así se indican. |
 
@@ -234,3 +235,5 @@ npm run test:e2e
 | 2026-10-30 | Dinero en enteros + ISO 4217; tipo de cambio congelado por gasto | Sin errores de redondeo ni cambios retroactivos. |
 | 2026-10-30 | Cuatro estados de gasto: pagado, parcial, pendiente, previsto | Requisito del usuario. |
 | 2026-10-30 | Mapa Leaflet + OSM; tiempos estimados + enlaces a Google Maps | Sin claves ni costos; no se presentan estimaciones como rutas reales. |
+| 2026-10-30 | Rediseño visual: fotos de ciudades (Wikimedia Commons), portada grande, línea de tiempo, mapa de ruta en el resumen, tarjetas de embarque, gráficos de gastos | Pedido del usuario («algo más visual»). Gráfico de categorías como barra segmentada (no circular) siguiendo la guía de visualización; paleta categórica validada para daltonismo en claro y oscuro. |
+| 2026-10-30 | Un destino con una sola fecha conocida solo cuenta ese día | Antes se extendía a todo el viaje y mostraba ciudades equivocadas en el día a día. |
