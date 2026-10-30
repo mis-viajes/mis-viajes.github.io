@@ -1,0 +1,75 @@
+import { CalendarDays, MapPin, Users, Wallet } from "lucide-react";
+import { Link } from "react-router";
+import { formatDate, tripDays, tripPhase } from "@/lib/domain/dates";
+import { formatMoney } from "@/lib/domain/money";
+import type { TripBundle } from "@/lib/domain/types";
+import { TRIP_PHASE } from "@/lib/labels";
+import { tripCities, tripCountries } from "@/lib/trip-helpers";
+import { Badge, Card, type Tone } from "./ui";
+
+const PHASE_TONE: Record<string, Tone> = { futuro: "accent", en_curso: "success", finalizado: "neutral", cancelado: "danger" };
+
+export function TripCover({ name, image, className }: { name: string; image: string | null; className?: string }) {
+  if (image) {
+    return <img src={image} alt="" className={`object-cover ${className ?? ""}`} />;
+  }
+  // Sin imagen: degradado determinista a partir del nombre.
+  const hue = [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+  return (
+    <div
+      className={`grid place-items-center text-2xl font-semibold text-white/90 ${className ?? ""}`}
+      style={{ background: `linear-gradient(135deg, hsl(${hue} 55% 42%), hsl(${(hue + 40) % 360} 60% 32%))` }}
+      aria-hidden
+    >
+      {name
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((w) => w[0]?.toUpperCase())
+        .join("")}
+    </div>
+  );
+}
+
+export function TripCard({ bundle, today }: { bundle: TripBundle; today: string }) {
+  const { trip } = bundle;
+  const phase = tripPhase(trip, today);
+  const cities = tripCities(bundle);
+  const countries = tripCountries(bundle);
+  return (
+    <Link to={`/trips/${trip.id}`} className="group block">
+      <Card className="overflow-hidden transition group-hover:shadow-md group-hover:border-accent/40">
+        <TripCover name={trip.name} image={trip.coverImage} className="h-28 w-full" />
+        <div className="space-y-2 p-4">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-semibold leading-tight">{trip.name}</h3>
+            <Badge tone={PHASE_TONE[phase]}>{TRIP_PHASE[phase]}</Badge>
+          </div>
+          {(cities.length > 0 || countries.length > 0) && (
+            <p className="flex items-center gap-1.5 truncate text-sm text-muted">
+              <MapPin size={14} className="shrink-0" />
+              {cities.length ? cities.join(" · ") : countries.join(" · ")}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+            <span className="flex items-center gap-1">
+              <CalendarDays size={13} />
+              {formatDate(trip.startDate, "d MMM")} – {formatDate(trip.endDate)} · {tripDays(trip.startDate, trip.endDate)} días
+            </span>
+            {bundle.travelers.length > 0 && (
+              <span className="flex items-center gap-1">
+                <Users size={13} />
+                {bundle.travelers.length}
+              </span>
+            )}
+            {trip.budgetMinor !== null && (
+              <span className="flex items-center gap-1">
+                <Wallet size={13} />
+                {formatMoney(trip.budgetMinor, trip.baseCurrency)}
+              </span>
+            )}
+          </div>
+        </div>
+      </Card>
+    </Link>
+  );
+}
