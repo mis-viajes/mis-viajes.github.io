@@ -9,7 +9,7 @@ Forma parte del mismo ecosistema que Mi Día, Finanzas y Kratos: mismo proyecto 
 ## Puesta en marcha (una sola vez)
 
 1. **Base de datos:** en supabase.com → proyecto compartido → **SQL Editor** → *New query*, pega el contenido de [`supabase/schema.sql`](supabase/schema.sql) y pulsa **Run**. Crea las tablas `tm_*` (no toca las de las otras apps), sus políticas de seguridad y el bucket privado `tm-documentos`. Se puede volver a ejecutar sin perder datos.
-2. **Publicación:** en GitHub → *Settings* → *Pages* → *Source*: **GitHub Actions**. Cada push a `main` publica la app automáticamente.
+2. **Publicación:** automática. Cada push a `main` compila la app y la copia a la rama `gh-pages`, que GitHub Pages sirve (Settings → Pages → Source: *Deploy from a branch* → `gh-pages`).
 3. **Importación inteligente (opcional):** en la app, *Ajustes* → pega tu clave de API de Anthropic. Se guarda solo en ese navegador.
 
 ## Stack
