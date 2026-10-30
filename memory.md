@@ -23,6 +23,9 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 - **Rediseño visual (2026-10-30):** fotos de ciudades, portada grande con cuenta atrás, tarjetas de destino, mapa de ruta y línea de tiempo en el resumen, tarjetas de embarque, gráficos de gastos, botones para eliminar viajes desde la lista y la portada. E2E 34/34.
 - Las fotos de Wikimedia a veces fallan desde el entorno de Claude (error 429 por límite de peticiones del proxy compartido); en el navegador del usuario deberían cargar. Si fallan, se muestra un degradado.
 
+- **Viaje Europa 2026 completo** preparado como archivo JSON (fuera del repo, contiene datos personales): 7 vuelos (LATAM con horarios corregidos según capturas de la app de LATAM: LA6, LA708, LA705, LA9), 7 alojamientos, 8 trenes por comprar, 4 actividades, 13 gastos (pagado $4.242.628, pendiente $675.441) y 10 documentos. Probado en local: pagos por persona iguales al itinerario del usuario.
+- Los trayectos con solo fecha (sin hora) ya no generan alertas de conexión (`segments.ts`).
+
 ## Próximos pasos
 
 1. Que el usuario ejecute `supabase/schema.sql`; después, probar con la cuenta real (crear viaje, subir documento, importar).

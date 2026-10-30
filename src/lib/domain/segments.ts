@@ -14,9 +14,14 @@ export type Segment = {
   cancelled: boolean;
 };
 
+/** Un tramo con solo fecha (sin hora) no tiene instante: no participa en el cálculo de conexiones. */
+function instant(local: string | null, tz: string | null) {
+  return local && local.length >= 16 ? localToInstant(local, tz) : null;
+}
+
 export function flightSegment(f: Flight): Segment {
-  const dep = localToInstant(f.departureLocal, f.departureTz);
-  const arr = localToInstant(f.arrivalLocal, f.arrivalTz);
+  const dep = instant(f.departureLocal, f.departureTz);
+  const arr = instant(f.arrivalLocal, f.arrivalTz);
   return {
     kind: "flight",
     id: f.id,
@@ -31,8 +36,8 @@ export function flightSegment(f: Flight): Segment {
 }
 
 export function transportSegment(t: Transport): Segment {
-  const dep = localToInstant(t.departureLocal, t.timezone);
-  const arr = localToInstant(t.arrivalLocal, t.timezone);
+  const dep = instant(t.departureLocal, t.timezone);
+  const arr = instant(t.arrivalLocal, t.timezone);
   return {
     kind: "transport",
     id: t.id,

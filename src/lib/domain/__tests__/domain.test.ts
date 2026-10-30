@@ -75,6 +75,14 @@ describe("conexiones", () => {
   });
 });
 
+describe("tramos sin hora", () => {
+  it("un trayecto con solo fecha no genera conexiones ni solapamientos", () => {
+    const a = flight({ departureLocal: "2026-11-13T16:00", departureTz: "America/Santiago", arrivalLocal: "2026-11-14T09:00", arrivalTz: "Europe/Madrid" });
+    const b = flight({ departureLocal: "2026-11-14", arrivalLocal: null });
+    expect(findConnections([a, b].map(flightSegment))).toHaveLength(0);
+  });
+});
+
 describe("alertas", () => {
   it("avisa de vuelos sin equipaje y noches sin alojamiento, pero no de noches en vuelo", () => {
     const b = bundle({
