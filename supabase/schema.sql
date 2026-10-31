@@ -407,3 +407,68 @@ create policy "tm_own_rows" on public.tm_repayments for all to authenticated
               and exists (select 1 from public.tm_trips tr where tr.id = trip_id and tr.user_id = auth.uid()));
 
 notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------
+-- Añadido 2026-10-31: cuentas vinculadas. Cada fila de tm_sharing permite a member_id
+-- ver y editar todos los viajes de owner_id, presentes y futuros, y sus archivos.
+-- Los vínculos se crean desde el SQL Editor; la app no puede crearlos ni cambiarlos.
+-- ---------------------------------------------------------------------
+create table if not exists public.tm_sharing (
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  member_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (owner_id, member_id),
+  check (owner_id <> member_id)
+);
+
+alter table public.tm_sharing enable row level security;
+drop policy if exists "tm_sharing_read" on public.tm_sharing;
+create policy "tm_sharing_read" on public.tm_sharing for select to authenticated
+  using (owner_id = auth.uid() or member_id = auth.uid());
+
+-- ¿La sesión actual es el dueño de estos datos o una cuenta vinculada a él?
+create or replace function public.tm_has_access(owner text) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select owner = auth.uid()::text or exists (
+    select 1 from public.tm_sharing s where s.owner_id::text = owner and s.member_id = auth.uid()
+  )
+$$;
+
+create or replace function public.tm_can_access_trip(trip uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (select 1 from public.tm_trips t where t.id = trip and public.tm_has_access(t.user_id::text))
+$$;
+
+revoke execute on function public.tm_has_access(text) from public, anon;
+revoke execute on function public.tm_can_access_trip(uuid) from public, anon;
+grant execute on function public.tm_has_access(text) to authenticated;
+grant execute on function public.tm_can_access_trip(uuid) to authenticated;
+
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['tm_trips','tm_exchange_rates'] loop
+    execute format('drop policy if exists "tm_own_rows" on public.%I', t);
+    execute format(
+      'create policy "tm_own_rows" on public.%I for all to authenticated
+         using (public.tm_has_access(user_id::text)) with check (public.tm_has_access(user_id::text))', t);
+  end loop;
+  foreach t in array array['tm_travelers','tm_destinations','tm_flights','tm_baggage_allowances','tm_lodgings',
+                           'tm_transports','tm_activities','tm_restaurants','tm_documents','tm_expenses',
+                           'tm_checklist_items','tm_repayments'] loop
+    execute format('drop policy if exists "tm_own_rows" on public.%I', t);
+    execute format(
+      'create policy "tm_own_rows" on public.%I for all to authenticated
+         using (public.tm_can_access_trip(trip_id)) with check (public.tm_can_access_trip(trip_id))', t);
+  end loop;
+end $$;
+
+drop policy if exists "tm_docs_select" on storage.objects;
+drop policy if exists "tm_docs_delete" on storage.objects;
+create policy "tm_docs_select" on storage.objects for select to authenticated
+  using (bucket_id = 'tm-documentos' and public.tm_has_access((storage.foldername(name))[1]));
+create policy "tm_docs_delete" on storage.objects for delete to authenticated
+  using (bucket_id = 'tm-documentos' and public.tm_has_access((storage.foldername(name))[1]));
+
+notify pgrst, 'reload schema';

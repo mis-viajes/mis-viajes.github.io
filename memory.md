@@ -75,6 +75,9 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 ## Bitácora de sesiones
 
+### 2026-10-31 — Cuentas vinculadas
+- Pedido del usuario: Catalina debe ver y editar todos los viajes, también los futuros. Implementado con `tm_sharing`. La cuenta de Catalina la crea el usuario en Supabase; después hay que insertar las dos filas de vínculo.
+
 ### 2026-10-30 (6) — Pagos entre viajeros
 - Nueva tabla `tm_repayments`: lo que un viajero le devuelve a otro ajusta el saldo sin cambiar el total. Catalina pagó $803.803 a Diego (registrado el 2026-10-31); tabla creada en Supabase.
 

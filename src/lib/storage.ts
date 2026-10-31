@@ -1,4 +1,4 @@
-import { insertRow } from "./db";
+import { insertRow, selectAll } from "./db";
 import { notifyDataChanged } from "./hooks";
 import { DOCS_BUCKET, isTestMode, supabase } from "./supabase";
 import type { DocumentRow } from "./types";
@@ -84,9 +84,9 @@ export async function deleteFile(key: string): Promise<void> {
 export async function deleteTripFiles(tripId: string): Promise<void> {
   if (isTestMode) return;
   try {
-    const folder = `${await currentUserId()}/${tripId}`;
-    const { data } = await supabase.storage.from(DOCS_BUCKET).list(folder, { limit: 1000 });
-    if (data?.length) await supabase.storage.from(DOCS_BUCKET).remove(data.map((f) => `${folder}/${f.name}`));
+    // Por las fichas y no por carpeta: en un viaje compartido cada cuenta sube a la suya.
+    const docs = await selectAll<DocumentRow>("document", { tripId });
+    if (docs.length) await supabase.storage.from(DOCS_BUCKET).remove(docs.map((d) => d.storageKey));
   } catch (e) {
     console.warn("No se pudieron borrar los archivos del viaje", e);
   }

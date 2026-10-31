@@ -22,6 +22,7 @@ insert into public.tm_checklist_items (trip_id, list, title) values ('aaaaaaaa-0
 \set ON_ERROR_STOP 1
 select 'Nombre tras intento de B: ' || name from public.tm_trips;
 select 'Viajeros de A: ' || count(*) from public.tm_travelers;
+-- Cuentas vinculadas: ver tm_sharing en schema.sql.
 select 'Tareas tras intento de B: ' || count(*) from public.tm_checklist_items;
 delete from public.tm_trips;
 select 'Viajeros tras borrar el viaje (cascada): ' || count(*) from public.tm_travelers;

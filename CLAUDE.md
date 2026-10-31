@@ -66,7 +66,7 @@ Idioma de la interfaz: **español**. Monedas principales: **CLP, EUR, USD**.
 
 ## 4. Arquitectura y stack
 
-App **estática** publicada en GitHub Pages (`https://mis-viajes.github.io/`), con los datos en el **proyecto Supabase compartido** con Mi Día, Finanzas y Kratos. Mismo patrón que el resto del ecosistema del usuario: login con correo y contraseña de Supabase, Row Level Security `user_id = auth.uid()`, sin servidor propio.
+App **estática** publicada en GitHub Pages (`https://mis-viajes.github.io/`), con los datos en el **proyecto Supabase compartido** con Mi Día, Finanzas y Kratos. Mismo patrón que el resto del ecosistema del usuario: login con correo y contraseña de Supabase, Row Level Security por dueño y cuentas vinculadas, sin servidor propio.
 
 | Capa | Tecnología | Notas |
 |---|---|---|
@@ -122,7 +122,9 @@ Lógica pura y testeada: src/lib/domain/*  (dinero, fechas, finanzas, alertas, i
 
 **Fuente de verdad: `supabase/schema.sql`** (columnas snake_case) y `src/lib/types.ts` (camelCase). Todas las tablas llevan `user_id` (por defecto `auth.uid()`), y salvo `tm_trips` y `tm_exchange_rates`, también `trip_id` con borrado en cascada. Las políticas exigen además que la fila cuelgue de un viaje del propio usuario.
 
-Tablas: `tm_trips`, `tm_travelers`, `tm_destinations`, `tm_flights`, `tm_baggage_allowances` (por vuelo), `tm_lodgings`, `tm_transports`, `tm_activities`, `tm_restaurants`, `tm_documents`, `tm_expenses` (con el reparto en la columna jsonb `shares`: `[{travelerId, shareBaseMinor}]`), `tm_exchange_rates` (por usuario), `tm_checklist_items` (tareas y maleta, según la columna `list`), `tm_repayments` (pagos entre viajeros).
+Tablas: `tm_trips`, `tm_travelers`, `tm_destinations`, `tm_flights`, `tm_baggage_allowances` (por vuelo), `tm_lodgings`, `tm_transports`, `tm_activities`, `tm_restaurants`, `tm_documents`, `tm_expenses` (con el reparto en la columna jsonb `shares`: `[{travelerId, shareBaseMinor}]`), `tm_exchange_rates` (por usuario), `tm_checklist_items` (tareas y maleta, según la columna `list`), `tm_repayments` (pagos entre viajeros), `tm_sharing` (cuentas vinculadas).
+
+**Cuentas vinculadas:** cada fila de `tm_sharing` permite a `member_id` ver y editar todos los viajes de `owner_id`, presentes y futuros, incluidos sus documentos. Para que dos personas compartan hay dos filas, una por sentido. Se crean en el SQL Editor; la app no puede crearlas. Las políticas usan `tm_has_access` y `tm_can_access_trip`. `user_id` indica quién creó la fila, no quién puede verla.
 
 Cambios de esquema: añadir SQL idempotente al final de `supabase/schema.sql` (`alter table … add column if not exists …`), actualizar `types.ts`, y pedir al usuario que lo ejecute en Supabase. Probarlo antes en el PostgreSQL local (`tests/db`).
 
@@ -225,7 +227,7 @@ npm run test:e2e       # smoke.mjs + features.mjs (ESQUEMA_ANTIGUO=1: prueba la 
 
 ## 9 bis. Seguridad
 
-- Datos protegidos por **RLS** en todas las tablas `tm_*` y por políticas de Storage por carpeta de usuario. Probado en `tests/db/rls-test.sql`.
+- Datos protegidos por **RLS** en todas las tablas `tm_*` y por políticas de Storage por carpeta de usuario, abiertas solo a cuentas vinculadas en `tm_sharing`. Probado en `tests/db/rls-test.sql`.
 - La **clave de Anthropic** vive solo en `localStorage` del dispositivo del usuario. Esta app tiene origen propio (`mis-viajes.github.io`), así que las otras apps no pueden leerla.
 - Códigos de reserva e información de acceso se muestran enmascarados (`components/sensitive.tsx`). Nunca se guardan contraseñas ni números de tarjeta.
 - Archivos: tipos MIME permitidos, 20 MB máximo, bucket privado y enlaces firmados temporales.
@@ -256,3 +258,4 @@ npm run test:e2e       # smoke.mjs + features.mjs (ESQUEMA_ANTIGUO=1: prueba la 
 | 2026-10-30 | Mapa sin teselas offline | Las teselas de OSM son respuestas opacas que consumen mucha cuota, y OSM no permite descargas masivas. |
 | 2026-10-30 | **Dirección propia `mis-viajes.github.io`** (organización `mis-viajes`, como `mis-inversiones`) | El usuario no quería su nombre de cuenta en el enlace. La app deja de compartir origen con las otras: login propio una vez. La dirección antigua redirige. |
 | 2026-10-30 | Pagos entre viajeros en tabla propia, no como gasto | Un gasto inflaría el total y el presupuesto. Se registra desde «Para quedar a mano». |
+| 2026-10-31 | **Cuentas vinculadas (`tm_sharing`) en lugar de miembros por viaje** | El usuario comparte con una persona todos sus viajes, también los futuros. Un vínculo por cuenta evita compartir viaje por viaje y no requiere pantallas nuevas. Ambas cuentas pueden editar y eliminar. |
