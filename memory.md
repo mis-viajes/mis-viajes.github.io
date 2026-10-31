@@ -76,7 +76,7 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 ## Bitácora de sesiones
 
 ### 2026-10-30 (6) — Pagos entre viajeros
-- Nueva tabla `tm_repayments`: lo que un viajero le devuelve a otro ajusta el saldo sin cambiar el total. Catalina pagó $803.803 a Diego el 2026-10-30.
+- Nueva tabla `tm_repayments`: lo que un viajero le devuelve a otro ajusta el saldo sin cambiar el total. Catalina pagó $803.803 a Diego (registrado el 2026-10-31); tabla creada en Supabase.
 
 ### 2026-10-30 (5) — Nueva dirección
 - Mudada a https://mis-viajes.github.io/ (organización `mis-viajes`, remoto `origin`). El repo anterior queda como remoto `antiguo`: su `gh-pages` redirige y su service worker se elimina solo; no publicar más allí.
