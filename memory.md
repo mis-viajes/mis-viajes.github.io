@@ -75,6 +75,9 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 
 ## Bitácora de sesiones
 
+### 2026-10-31 — Cuenta correcta y pendientes de transporte
+- La cuenta de Catalina se cambió por `catta.sepz@gmail.com`; vínculo activo. Tarjetas del resumen clicables. Agregados 4 trayectos por definir (París ↔ Disneyland, París ↔ Versalles) y 12 tareas «Comprar billete…» en Checklist, grupo Transporte.
+
 ### 2026-10-31 — Cuentas vinculadas
 - Pedido del usuario: Catalina debe ver y editar todos los viajes, también los futuros. Implementado con `tm_sharing`. El usuario creó la cuenta de Catalina y el vínculo quedó activo en ambos sentidos (2026-10-31); simulando su sesión en la base de datos ve el viaje completo, documentos y archivos.
 

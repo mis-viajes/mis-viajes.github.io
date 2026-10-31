@@ -68,6 +68,18 @@ async function seed() {
     await page.goto(trip);
     await page.waitForSelector("text=Viaje E2E");
     check("el resumen del viaje carga", !(await page.innerText("main")).includes("Falta preparar la base de datos"));
+    await page.click("main a:has-text('Noches con alojamiento')");
+    await page.waitForURL(/\/lodging$/);
+    await page.goBack();
+    await page.click("main a:has-text('Pagado')");
+    await page.waitForURL(/\/finance$/);
+    await page.goBack();
+    await page.click("main a:has-text('Vuelos'):has-text('destinos')");
+    await page.waitForURL(/\/flights$/);
+    await page.goBack();
+    await page.click("main button:has-text('Reservas confirmadas')");
+    await page.waitForFunction(() => { const r = document.getElementById("reservas")?.getBoundingClientRect(); return r && r.top < innerHeight; });
+    check("las tarjetas del resumen llevan a su sección", true);
 
     if (OLD_SCHEMA) {
       await page.goto(`${trip}/checklist`);

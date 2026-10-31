@@ -16,9 +16,11 @@ import { BOOKING_STATUS, TRANSPORT_TYPE } from "@/lib/labels";
 
 const RouteMap = lazy(() => import("@/components/map/route-map"));
 
-/** Indicador grande con icono de color. */
-function Metric({ icon: Icon, color, label, value, hint, progress }: { icon: typeof Plane; color: string; label: string; value: string; hint?: string; progress?: number }) {
-  return (
+const METRIC_CLICK = "block rounded-xl text-left transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 [&>div]:h-full [&>div]:transition [&:hover>div]:border-accent/40";
+
+/** Indicador grande con icono de color. Con `to` lleva a esa sección; con `onClick` hace esa acción. */
+function Metric({ icon: Icon, color, label, value, hint, progress, to, onClick }: { icon: typeof Plane; color: string; label: string; value: string; hint?: string; progress?: number; to?: string; onClick?: () => void }) {
+  const card = (
     <Card className="p-4">
       <div className="flex items-center gap-3">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white" style={{ background: color }}>
@@ -37,6 +39,9 @@ function Metric({ icon: Icon, color, label, value, hint, progress }: { icon: typ
       {hint && <p className="mt-1.5 text-xs text-muted">{hint}</p>}
     </Card>
   );
+  if (to) return <Link to={to} className={METRIC_CLICK}>{card}</Link>;
+  if (onClick) return <button type="button" onClick={onClick} className={`${METRIC_CLICK} w-full`}>{card}</button>;
+  return card;
 }
 
 export default function TripOverviewPage() {
@@ -76,6 +81,7 @@ export default function TripOverviewPage() {
           label="Reservas confirmadas"
           value={`${confirmed} de ${bookings.length}`}
           progress={bookings.length ? confirmed / bookings.length : 0}
+          onClick={() => document.getElementById("reservas")?.scrollIntoView({ behavior: "smooth" })}
         />
         <Metric
           icon={BedDouble}
@@ -83,8 +89,9 @@ export default function TripOverviewPage() {
           label="Noches con alojamiento"
           value={`${coveredNights} de ${nights}`}
           progress={nights ? coveredNights / nights : 0}
+          to={`/trips/${tripId}/lodging`}
         />
-        <Metric icon={Plane} color="#2563eb" label="Vuelos" value={String(bundle.flights.filter((f) => f.bookingStatus !== "cancelado").length)} hint={`${bundle.destinations.length} destinos`} />
+        <Metric icon={Plane} color="#2563eb" label="Vuelos" value={String(bundle.flights.filter((f) => f.bookingStatus !== "cancelado").length)} hint={`${bundle.destinations.length} destinos`} to={`/trips/${tripId}/flights`} />
         <Metric
           icon={Wallet}
           color="#d97706"
@@ -92,6 +99,7 @@ export default function TripOverviewPage() {
           value={finance.budget !== null ? formatMoney(finance.budgetRemaining, base) : formatMoney(finance.totals.paid, base)}
           hint={finance.budget !== null ? `Previsto ${formatMoney(finance.totals.projected, base)}` : `Pendiente ${formatMoney(finance.totals.pending, base)}`}
           progress={finance.budget ? finance.totals.projected / finance.budget : undefined}
+          to={`/trips/${tripId}/finance`}
         />
       </div>
       {finance.budget !== null && finance.totals.projected > finance.budget && (
@@ -149,7 +157,7 @@ export default function TripOverviewPage() {
       </section>
 
       {bookings.length > 0 && (
-        <section>
+        <section id="reservas" className="scroll-mt-16">
           <SectionTitle title="Estado de las reservas" />
           <Card className="divide-y divide-line">
             {bookings.map((b) => (
