@@ -35,6 +35,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"],
+        clientsClaim: true,
+        skipWaiting: true,
         navigateFallback: "index.html",
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },

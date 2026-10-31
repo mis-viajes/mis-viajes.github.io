@@ -14,6 +14,14 @@ window.addEventListener("vite:preloadError", () => {
   }
 });
 
+// Al abrir la app, el service worker sirve la versión guardada y descarga la nueva en segundo
+// plano. Si llega en los primeros segundos se aplica de inmediato: aún no hay nada a medio escribir.
+if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (performance.now() < 15000) location.reload();
+  });
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />

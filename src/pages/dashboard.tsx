@@ -177,7 +177,7 @@ function NextTrip({ bundle, today }: { bundle: TripBundle; today: string }) {
         <div className="absolute inset-0">
           <TripCover name={trip.name} image={trip.coverImage} query={tripPhotoQuery(bundle)} className="h-full w-full" />
         </div>
-        <div className="relative min-h-64 bg-gradient-to-t from-black/80 via-black/40 to-black/10 p-6 text-white sm:p-8">
+        <div className="relative min-h-64 bg-gradient-to-t from-black/80 via-black/45 to-black/35 p-6 text-white sm:p-8">
           <p className="flex items-center gap-1.5 text-sm text-white/80">
             <CalendarClock size={15} /> {phase === "en_curso" ? "Viaje en curso" : "Próximo viaje"}
           </p>
