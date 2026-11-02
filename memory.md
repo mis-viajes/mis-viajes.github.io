@@ -76,7 +76,7 @@ Memoria de trabajo entre sesiones. `CLAUDE.md` = reglas, arquitectura y plan (ca
 ## Bitácora de sesiones
 
 ### 2026-11-01 — Trenes Italo
-- Cargados 5 trayectos confirmados (4 billetes, EUR 169,64, pagó Diego). Gastos a 1 EUR = 1103,36 CLP, tipo guardado en la app y no el cobro real: pendiente el monto en CLP si el usuario lo entrega. PDFs subidos a Documentos y copiados en `documentos/europa-2026/`, carpeta local excluida de git porque el repositorio es público. Excursión a Verona movida al 24-11 según el billete.
+- Cargados 5 trayectos confirmados (4 billetes, EUR 169,64, pagó Diego). Gastos a 1 EUR = 1103,36 CLP, tipo guardado en la app y no el cobro real: montos reales entregados por el usuario, AÚN SIN APLICAR en Supabase porque se cortó Chrome: Roma-Florencia 60.807, Florencia-Venecia 54.706, Venecia-Milán 35.928, Venecia-Verona 40.221 (asignados por tipo de cambio, 1129,8 en todos). PDFs subidos a Documentos y copiados en `documentos/europa-2026/`, carpeta local excluida de git porque el repositorio es público. Excursión a Verona movida al 24-11 según el billete.
 
 ### 2026-10-31 — Cuenta correcta y pendientes de transporte
 - La cuenta de Catalina se cambió por `catta.sepz@gmail.com`; vínculo activo. Tarjetas del resumen clicables. Agregados 4 trayectos por definir (París ↔ Disneyland, París ↔ Versalles) y 12 tareas «Comprar billete…» en Checklist, grupo Transporte.
