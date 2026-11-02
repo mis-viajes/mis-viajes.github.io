@@ -1,0 +1,1 @@
+const t="tm_anthropic_api_key";function r(){try{return localStorage.getItem(t)}catch{return null}}function a(e){try{e?localStorage.setItem(t,e.trim()):localStorage.removeItem(t)}catch{}}export{r as g,a as s};
