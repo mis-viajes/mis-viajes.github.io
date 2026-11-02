@@ -26,3 +26,6 @@ dist-ssr
 # pruebas
 dist-test
 tests/e2e/screenshots
+
+# billetes y reservas: datos personales, el repositorio es público
+documentos/
